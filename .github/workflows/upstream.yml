@@ -1,0 +1,79 @@
+# Keep up with EmDash without ever upgrading automatically.
+#
+# Weekly (and on demand): if EmDash has a release newer than the one Powerfarm is
+# pinned to, build Powerfarm on it exactly as CI does and report the result in one
+# issue per release: do the patches still apply, does it build, do all checks pass.
+# Moving the pin is a person's reviewed PR (docs/UPSTREAM.md).
+name: EmDash upstream
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Try the newest EmDash release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+      - run: corepack enable
+      - name: Newest release
+        id: latest
+        run: |
+          repo=$(node -p "require('./upstream/emdash.json').repository")
+          pinned=$(node -p "require('./upstream/emdash.json').basedOnTag")
+          line=$(git ls-remote --tags "$repo" 'emdash@*' | grep -v -- '-rc\|\^{}' | awk '{print $2" "$1}' | sed 's#refs/tags/##' | sort -V | tail -1)
+          tag=${line% *}; sha=${line#* }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"; echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if [ "$(printf '%s\n%s\n' "$pinned" "$tag" | sort -V | tail -1)" = "$pinned" ]; then
+            echo "newer=false" >> "$GITHUB_OUTPUT"; echo "Pinned to $pinned; newest is $tag. Nothing to do."
+          else
+            echo "newer=true" >> "$GITHUB_OUTPUT"; echo "EmDash $tag ($sha) is newer than $pinned."
+          fi
+      - name: Patches apply
+        id: patches
+        if: steps.latest.outputs.newer == 'true'
+        continue-on-error: true
+        run: bash scripts/setup.sh --ref "${{ steps.latest.outputs.sha }}" --skip-build
+      - name: Build and all checks
+        id: build
+        if: steps.latest.outputs.newer == 'true' && steps.patches.outcome == 'success'
+        continue-on-error: true
+        run: bash scripts/setup.sh --ref "${{ steps.latest.outputs.sha }}"
+      - name: Report
+        if: steps.latest.outputs.newer == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.latest.outputs.tag }}
+          SHA: ${{ steps.latest.outputs.sha }}
+          PATCHES: ${{ steps.patches.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="EmDash $TAG is available"
+          body=$(printf '%s\n' \
+            "EmDash \`$TAG\` (\`$SHA\`) is newer than the pin in \`upstream/emdash.json\`." "" \
+            "| Check | Result |" "| --- | --- |" \
+            "| Powerfarm's patches apply | $PATCHES |" \
+            "| Install (no new dependencies), build, tests, typecheck, seed validation, Worker build | ${BUILD:-skipped} |" "" \
+            "Run: $RUN" "" \
+            "To upgrade: read the release notes and \`.emdash/UPGRADE.md\` from \`upgrade-emdash\`, then open a PR that changes \`upstream/emdash.json\` (docs/UPSTREAM.md). Nothing was changed automatically.")
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"; else gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"; fi
