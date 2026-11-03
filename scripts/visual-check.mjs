@@ -47,8 +47,9 @@ const fail = (msg) => {
 };
 const ok = (msg) => console.log(`ok   ${msg}`);
 
-function start(name, cmd, cmdArgs, env, port) {
-	const dataDir = mkdtempSync(path.join(tmpdir(), `pf-visual-${name}-`));
+const newDataDir = (name) => mkdtempSync(path.join(tmpdir(), `pf-visual-${name}-`));
+
+function start(name, cmd, cmdArgs, env, port, dataDir = newDataDir(name)) {
 	const child = spawn(cmd, cmdArgs, {
 		cwd: SITE,
 		env: { ...process.env, ...env, POWERFARM_DATA_DIR: dataDir, EMDASH_PRIVATE_MEDIA: "1", HOST: "127.0.0.1", PORT: String(port) },
@@ -130,10 +131,17 @@ const browser = await chromium.launch();
 try {
 	// 1. Production build.
 	console.log("\nProduction build (astro.config.node.mjs)");
-	const build = spawn(ASTRO, ["build", "--config", "astro.config.node.mjs"], { cwd: SITE, stdio: "inherit" });
+	// astro.config.node.mjs fixes the database path at build time, so the build and
+	// the server share one throwaway data directory.
+	const prodData = newDataDir("prod");
+	const build = spawn(ASTRO, ["build", "--config", "astro.config.node.mjs"], {
+		cwd: SITE,
+		stdio: "inherit",
+		env: { ...process.env, POWERFARM_DATA_DIR: prodData, EMDASH_PRIVATE_MEDIA: "1" },
+	});
 	const code = await new Promise((r) => build.on("exit", r));
 	if (code !== 0) throw new Error(`production build failed (${code})`);
-	const prod = start("prod", process.execPath, ["dist/server/entry.mjs"], {}, 4460);
+	const prod = start("prod", process.execPath, ["dist/server/entry.mjs"], {}, 4460, prodData);
 	try {
 		await waitFor(`${prod.base}/`, 60_000);
 		for (const mode of ["light", "dark"]) {
