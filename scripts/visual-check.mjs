@@ -155,7 +155,7 @@ try {
 			await shot(page, `landing-${mode}`);
 			await contrast(page, `landing (${mode})`, true);
 
-			await page.goto(`${prod.base}/oidc/continue?rid=not-a-valid-request`, { waitUntil: "networkidle" });
+			await page.goto(`${prod.base}/oidc/continue?rid=bad!`, { waitUntil: "networkidle" });
 			await page.waitForFunction(() => document.body.dataset.state === "error");
 			await shot(page, `oidc-continue-error-${mode}`);
 			await contrast(page, `oidc continue (${mode})`, true);
