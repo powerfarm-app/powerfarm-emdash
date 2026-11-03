@@ -101,7 +101,15 @@ async function checkAdmin(page, mode, label) {
 	else fail(`${label}: --font-emdash is "${font.trim()}", expected Inter`);
 
 	const logo = page.locator('img[src="/brand/mark.svg"]').first();
-	if ((await logo.count()) === 0) fail(`${label}: Powerfarm logo not shown`);
+	await logo.waitFor({ state: "attached", timeout: 30_000 }).catch(() => {});
+	if ((await logo.count()) === 0) {
+		const seen = await page.evaluate(() => ({
+			url: location.pathname,
+			images: [...document.images].map((i) => i.getAttribute("src")),
+			text: document.body.innerText.replace(/\s+/g, " ").slice(0, 300),
+		}));
+		fail(`${label}: Powerfarm logo not shown. Page: ${JSON.stringify(seen)}`);
+	}
 	else if (!(await logo.evaluate((img) => img.complete && img.naturalWidth > 0))) fail(`${label}: Powerfarm logo did not load`);
 	else ok(`${label}: Powerfarm logo shown`);
 }
