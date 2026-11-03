@@ -51,7 +51,7 @@ Choose it before the first setup on Cloudflare.
 ## How it is checked
 
 CI's *Build on pinned EmDash* job runs `scripts/visual-check.mjs` after the build. It opens the site in Chromium, using EmDash's own Playwright, in light and dark modes:
-- **A production build:** Powerfarm's two pages and the admin's first screen.
+- **A production build:** Powerfarm's two pages and the admin's sign-in screen.
 - **The development server, signed in** through EmDash's dev-only setup bypass: the dashboard, the Recovery page and a content list.
 
 ### The check fails if

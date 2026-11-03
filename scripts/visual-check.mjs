@@ -7,7 +7,7 @@
 // after the build). It uses EmDash's own Playwright and axe-core, so it adds no
 // dependency. Two servers, each with a throwaway database:
 //
-//   1. A production build (astro.config.node.mjs): the admin's first screen and
+//   1. A production build (astro.config.node.mjs): the admin's sign-in screen and
 //      Powerfarm's two pages. This is the check that the theme stylesheet
 //      reaches the admin in a real build, not only in development.
 //   2. The development server, signed in through EmDash's dev-only setup bypass
@@ -149,12 +149,14 @@ try {
 			await shot(page, `oidc-continue-error-${mode}`);
 			await contrast(page, `oidc continue (${mode})`, true);
 
+			// Signed out, the admin takes its name and logo from the server (the sign-in
+			// screen); signed in, from the manifest API (the sidebar, checked below).
 			await setAdminMode(page, prod.base, mode);
-			await page.goto(`${prod.base}/_emdash/admin`, { waitUntil: "networkidle" });
+			await page.goto(`${prod.base}/_emdash/admin/login`, { waitUntil: "networkidle" });
 			await page.waitForSelector("#emdash-boot-loader", { state: "detached", timeout: 30_000 }).catch(() => {});
-			await checkAdmin(page, mode, `admin first screen, production (${page.url().replace(prod.base, "")})`);
-			await shot(page, `admin-first-screen-${mode}`);
-			await contrast(page, `admin first screen (${mode})`, false);
+			await checkAdmin(page, mode, `admin sign-in, production (${mode})`);
+			await shot(page, `admin-sign-in-${mode}`);
+			await contrast(page, `admin sign-in (${mode})`, false);
 			await ctx.close();
 		}
 	} catch (error) {
