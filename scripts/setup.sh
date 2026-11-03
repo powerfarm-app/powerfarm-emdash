@@ -134,6 +134,10 @@ link_powerfarm
 retry pnpm install --no-frozen-lockfile
 node "$HERE/scripts/check-lockfile.mjs" .baseline-lock.yaml pnpm-lock.yaml
 pnpm build
+# pnpm links a package's bin only if its target exists at install time; EmDash's CLI
+# (dist/cli) exists only after the build, so link the bins now. Offline: nothing new
+# is fetched, and the lockfile is the one just checked.
+pnpm install --frozen-lockfile --offline
 
 [[ $CHECKS -eq 1 ]] || { echo "Built $TARGET."; exit 0; }
 
