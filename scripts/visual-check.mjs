@@ -105,6 +105,9 @@ async function checkAdmin(page, mode, label) {
 	if ((await logo.count()) === 0) {
 		const seen = await page.evaluate(() => ({
 			url: location.pathname,
+			title: document.title,
+			serverHtmlHasLogo: document.documentElement.outerHTML.includes("/brand/mark.svg"),
+			island: document.querySelector("astro-island")?.getAttribute("props")?.slice(0, 400) ?? null,
 			images: [...document.images].map((i) => i.getAttribute("src")),
 			text: document.body.innerText.replace(/\s+/g, " ").slice(0, 300),
 		}));
@@ -171,6 +174,13 @@ try {
 	const dev = start("dev", ASTRO, ["dev", "--config", "astro.config.node.mjs", "--port", "4461", "--host", "127.0.0.1"], {}, 4461);
 	try {
 		await waitFor(`${dev.base}/`, 180_000);
+		const signedOut = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+		const out = await signedOut.newPage();
+		out.setDefaultTimeout(120_000);
+		await out.goto(`${dev.base}/_emdash/admin/login`, { waitUntil: "networkidle" });
+		await checkAdmin(out, "light", "admin sign-in, development (light)");
+		await signedOut.close();
+
 		const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
 		const page = await ctx.newPage();
 		page.setDefaultTimeout(120_000);
