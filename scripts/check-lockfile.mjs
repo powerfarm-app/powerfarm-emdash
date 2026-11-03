@@ -43,7 +43,15 @@ export function compareLockfiles(upstreamText, resultText) {
 	const b = sections(resultText);
 	for (const name of new Set([...Object.keys(a), ...Object.keys(b)])) {
 		if (name === "importers" || name === "snapshots") continue;
-		if (a[name] !== b[name]) problems.push(`section "${name}" differs from EmDash's lockfile`);
+		if (a[name] === b[name]) continue;
+		// Name what differs, so a failure says which package to look at.
+		const ea = importers(a[name]);
+		const eb = importers(b[name]);
+		const detail = [];
+		for (const k of Object.keys(eb)) if (ea[k] === undefined) detail.push(`+${k}`);
+		for (const k of Object.keys(ea)) if (eb[k] === undefined) detail.push(`-${k}`);
+		for (const k of Object.keys(ea)) if (eb[k] !== undefined && eb[k].trimEnd() !== ea[k].trimEnd()) detail.push(`~${k}`);
+		problems.push(`section "${name}" differs from EmDash's lockfile${detail.length ? `: ${detail.slice(0, 15).join(", ")}${detail.length > 15 ? `, … (${detail.length})` : ""}` : ""}`);
 	}
 	const ia = importers(a.importers);
 	const ib = importers(b.importers);
