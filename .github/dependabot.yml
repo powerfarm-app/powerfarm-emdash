@@ -1,0 +1,11 @@
+# Only GitHub Actions are updated by Dependabot. npm packages come from EmDash's
+# lockfile (scripts/check-lockfile.mjs) and EmDash itself moves only by a reviewed
+# change to upstream/emdash.json (docs/UPSTREAM.md).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

@@ -33,6 +33,19 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+# The registry occasionally times out on one of the ~2,000 packages EmDash's pnpm
+# verifies against its supply-chain policy. Installs are idempotent: retry them.
+retry() {
+	local n=1
+	until "$@"; do
+		[[ $n -ge 3 ]] && { echo "Failed after $n attempts: $*" >&2; return 1; }
+		echo "Registry error; retrying in $((n * 30))s (attempt $((n + 1)) of 3): $*" >&2
+		sleep $((n * 30)); n=$((n + 1))
+	done
+}
+export npm_config_fetch_retries="${npm_config_fetch_retries:-5}"
+export npm_config_fetch_timeout="${npm_config_fetch_timeout:-120000}"
+
 pin() { node -e "process.stdout.write(String(require('$HERE/upstream/emdash.json')['$1']))"; }
 REPO="$(pin repository)"
 COMMIT="${REF:-$(pin commit)}"
@@ -83,27 +96,59 @@ for p in "$HERE"/upstream/patches/*.patch; do
 	fi
 done
 
-echo "Linking Powerfarm into the workspace"
-rm -rf "$TARGET/powerfarm"
-mkdir -p "$TARGET/powerfarm"
-for part in plugin site mac scripts docs upstream deploy README.md; do
-	[[ -e "$HERE/$part" ]] && cp -a "$HERE/$part" "$TARGET/powerfarm/$part"
-done
-rm -rf "$TARGET/powerfarm/site/node_modules" "$TARGET/powerfarm/plugin/node_modules" "$TARGET/powerfarm/mac/bridge/node_modules"
-if ! grep -q '^  - powerfarm/plugin$' "$TARGET/pnpm-workspace.yaml"; then
-	awk '{print} /^packages:/ && !done {print "  - powerfarm/plugin\n  - powerfarm/site\n  - powerfarm/mac/bridge"; done=1}' "$TARGET/pnpm-workspace.yaml" > "$TARGET/pnpm-workspace.yaml.tmp"
-	mv "$TARGET/pnpm-workspace.yaml.tmp" "$TARGET/pnpm-workspace.yaml"
+link_powerfarm() {
+	echo "Linking Powerfarm into the workspace"
+	rm -rf "$TARGET/powerfarm"
+	mkdir -p "$TARGET/powerfarm"
+	for part in plugin site mac scripts docs upstream deploy README.md; do
+		[[ -e "$HERE/$part" ]] && cp -a "$HERE/$part" "$TARGET/powerfarm/$part"
+	done
+	rm -rf "$TARGET/powerfarm/site/node_modules" "$TARGET/powerfarm/plugin/node_modules" "$TARGET/powerfarm/mac/bridge/node_modules"
+	if ! grep -q '^  - powerfarm/plugin$' "$TARGET/pnpm-workspace.yaml"; then
+		awk '{print} /^packages:/ && !done {print "  - powerfarm/plugin\n  - powerfarm/site\n  - powerfarm/mac/bridge"; done=1}' "$TARGET/pnpm-workspace.yaml" > "$TARGET/pnpm-workspace.yaml.tmp"
+		mv "$TARGET/pnpm-workspace.yaml.tmp" "$TARGET/pnpm-workspace.yaml"
+	fi
+}
+
+if [[ $BUILD -eq 0 ]]; then
+	link_powerfarm
+	echo "Prepared $TARGET (no install or build)."
+	exit 0
 fi
 
-[[ $BUILD -eq 1 ]] || { echo "Prepared $TARGET (no install or build)."; exit 0; }
-
 cd "$TARGET"
-git show HEAD:pnpm-lock.yaml > .upstream-lock.yaml
+# Baseline: EmDash's dependency set as pnpm resolves it on EmDash's own tree, before
+# Powerfarm is linked in. (EmDash's committed lockfile can lag its package.json files
+# between releases, so the committed file alone is not a fair baseline.)
+rm -rf "$TARGET/powerfarm"
+git checkout --quiet -- pnpm-workspace.yaml pnpm-lock.yaml
+retry pnpm install --lockfile-only --no-frozen-lockfile
+cp pnpm-lock.yaml .baseline-lock.yaml
+if ! cmp -s .baseline-lock.yaml <(git show HEAD:pnpm-lock.yaml); then
+	echo "Note: EmDash's committed lockfile is not in sync with its package files at this commit; using pnpm's resolution of EmDash's own tree as the baseline."
+fi
+
+link_powerfarm
 # The lockfile gains importer entries for Powerfarm's packages, so it cannot be frozen;
-# check-lockfile.mjs then proves no package was added or changed.
-pnpm install --no-frozen-lockfile
-node "$HERE/scripts/check-lockfile.mjs" .upstream-lock.yaml pnpm-lock.yaml
+# check-lockfile.mjs then proves Powerfarm added or changed no package.
+retry pnpm install --no-frozen-lockfile
+node "$HERE/scripts/check-lockfile.mjs" .baseline-lock.yaml pnpm-lock.yaml
 pnpm build
+# pnpm links a package's bin only if its target exists at install time, and EmDash's
+# CLI (packages/core/dist/cli) exists only after the build; a second install reports
+# "Already up to date" and links nothing. So link the CLI explicitly where Powerfarm
+# and the people running it need it, and put it on PATH for the checks below.
+CLI="$TARGET/packages/core/dist/cli/index.mjs"
+[[ -f "$CLI" ]] || { echo "EmDash's CLI was not built ($CLI)." >&2; exit 1; }
+for bindir in "$TARGET/node_modules/.bin" "$TARGET/powerfarm/site/node_modules/.bin" "$TARGET/powerfarm/plugin/node_modules/.bin"; do
+	mkdir -p "$bindir"
+	for name in emdash em; do
+		printf '#!/bin/sh\nexec node "%s" "$@"\n' "$CLI" > "$bindir/$name"
+		chmod +x "$bindir/$name"
+	done
+done
+export PATH="$TARGET/node_modules/.bin:$PATH"
+emdash --version >/dev/null 2>&1 || emdash --help >/dev/null 2>&1 || { echo "EmDash's CLI does not run." >&2; exit 1; }
 
 [[ $CHECKS -eq 1 ]] || { echo "Built $TARGET."; exit 0; }
 

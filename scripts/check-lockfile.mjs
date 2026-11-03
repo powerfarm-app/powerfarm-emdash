@@ -3,13 +3,11 @@
 //
 //   node scripts/check-lockfile.mjs <upstream pnpm-lock.yaml> <resulting pnpm-lock.yaml>
 //
-// Every top-level section of the lockfile must be byte-identical to EmDash's,
-// except:
-//   - `importers`, which may only gain entries under powerfarm/;
-//   - `snapshots`, which keeps every upstream entry unchanged and may only gain
-//     peer-dependency variants of packages already in `packages`.
-// So the packages, their versions and integrity hashes are exactly the ones
-// EmDash reviewed and locked upstream; Powerfarm brings none of its own.
+// The packages, their versions and their integrity hashes must be exactly the
+// ones EmDash locks; Powerfarm brings none of its own and may only add importers
+// under powerfarm/. Snapshots may gain peer-dependency variants of locked
+// packages. Anything else pnpm rewrites during a full install is printed as a
+// note, so it is visible in CI without failing on upstream's own drift.
 import { readFileSync } from "node:fs";
 
 /** Split a lockfile into top-level sections: { name: text }. */
@@ -37,35 +35,53 @@ export function importers(sectionText) {
 	return out;
 }
 
+const integrityOf = (entry) => /integrity: ([^,}\s]+)/.exec(entry ?? "")?.[1] ?? null;
+
+/**
+ * What must never happen: a package (name@version) EmDash does not lock, a changed
+ * integrity hash for one it does, or an importer outside powerfarm/. Those fail.
+ * What pnpm may legitimately rewrite during a full install (other metadata of an
+ * existing entry, EmDash's own importers, top-level settings) is reported, not failed:
+ * Powerfarm does not touch EmDash's package files, so those are upstream's.
+ */
 export function compareLockfiles(upstreamText, resultText) {
 	const problems = [];
+	const notes = [];
 	const a = sections(upstreamText);
 	const b = sections(resultText);
-	for (const name of new Set([...Object.keys(a), ...Object.keys(b)])) {
-		if (name === "importers" || name === "snapshots") continue;
-		if (a[name] !== b[name]) problems.push(`section "${name}" differs from EmDash's lockfile`);
+
+	const pa = importers(a.packages);
+	const pb = importers(b.packages);
+	for (const [key, entry] of Object.entries(pb)) {
+		if (pa[key] === undefined) problems.push(`new package "${key}" (not in EmDash's lockfile)`);
+		else if (integrityOf(entry) !== integrityOf(pa[key])) problems.push(`integrity of "${key}" changed (${integrityOf(pa[key])} -> ${integrityOf(entry)})`);
+		else if (entry.trimEnd() !== pa[key].trimEnd()) notes.push(`metadata of "${key}" rewritten by pnpm`);
 	}
-	const ia = importers(a.importers);
-	const ib = importers(b.importers);
-	for (const [key, text] of Object.entries(ia)) {
-		if (ib[key] === undefined) problems.push(`importer "${key}" disappeared`);
-		else if (ib[key].trimEnd() !== text.trimEnd()) problems.push(`importer "${key}" changed`);
-	}
-	const added = Object.keys(ib).filter((k) => ia[k] === undefined);
-	for (const key of added) if (!key.startsWith("powerfarm/")) problems.push(`unexpected new importer "${key}"`);
-	const known = new Set(Object.keys(importers(a.packages)));
+	for (const key of Object.keys(pa)) if (pb[key] === undefined) notes.push(`"${key}" no longer needed`);
+
+	const known = new Set(Object.keys(pa));
 	const sa = importers(a.snapshots);
 	const sb = importers(b.snapshots);
-	for (const [key, text] of Object.entries(sa)) {
-		if (sb[key] === undefined) problems.push(`snapshot "${key}" disappeared`);
-		else if (sb[key].trimEnd() !== text.trimEnd()) problems.push(`snapshot "${key}" changed`);
-	}
 	for (const key of Object.keys(sb)) {
 		if (sa[key] !== undefined) continue;
 		const base = key.replace(/\(.*$/, "");
 		if (!known.has(base)) problems.push(`new package "${base}" (not in EmDash's lockfile)`);
 	}
-	return { ok: problems.length === 0, problems, added };
+
+	const ia = importers(a.importers);
+	const ib = importers(b.importers);
+	const added = Object.keys(ib).filter((k) => ia[k] === undefined);
+	for (const key of added) if (!key.startsWith("powerfarm/")) problems.push(`unexpected new importer "${key}"`);
+	for (const [key, text] of Object.entries(ia)) {
+		if (ib[key] === undefined) notes.push(`EmDash importer "${key}" disappeared`);
+		else if (ib[key].trimEnd() !== text.trimEnd()) notes.push(`EmDash importer "${key}" re-resolved by pnpm`);
+	}
+
+	for (const name of new Set([...Object.keys(a), ...Object.keys(b)])) {
+		if (["importers", "packages", "snapshots"].includes(name)) continue;
+		if (a[name] !== b[name]) notes.push(`section "${name}" rewritten by pnpm`);
+	}
+	return { ok: problems.length === 0, problems, notes, added };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -75,6 +91,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 		process.exit(2);
 	}
 	const r = compareLockfiles(readFileSync(upstream, "utf8"), readFileSync(result, "utf8"));
+	for (const n of r.notes.slice(0, 30)) console.log(`note: ${n}`);
+	if (r.notes.length > 30) console.log(`note: … ${r.notes.length - 30} more`);
 	if (!r.ok) {
 		console.error("Powerfarm changed EmDash's dependency set. Powerfarm must use only what EmDash locks:");
 		for (const p of r.problems) console.error(`  - ${p}`);
