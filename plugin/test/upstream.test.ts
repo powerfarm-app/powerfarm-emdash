@@ -57,8 +57,12 @@ test("Powerfarm's importers are allowed; a new package, a changed version or a f
 
 	const newPackage = withImporter(UPSTREAM, "powerfarm/plugin") + "\n  left-pad@1.3.0: {}\n";
 	assert.match(compareLockfiles(UPSTREAM, newPackage).problems.join(), /new package "left-pad@1.3.0"/);
+	const pkgEntry = withImporter(UPSTREAM, "powerfarm/plugin").replace("\n  react@19.2.0:\n", "\n  left-pad@1.3.0:\n    resolution: {integrity: sha512-zzz}\n\n  react@19.2.0:\n");
+	assert.match(compareLockfiles(UPSTREAM, pkgEntry).problems.join(), /new package "left-pad@1.3.0"/);
+	const rewritten = withImporter(UPSTREAM, "powerfarm/plugin").replace("    resolution: {integrity: sha512-bbb}", "    resolution: {integrity: sha512-bbb}\n    engines: {node: '>=18'}");
+	assert.equal(compareLockfiles(UPSTREAM, rewritten).ok, true, "metadata pnpm adds to a locked package is a note, not a failure");
 	const bumped = withImporter(UPSTREAM, "powerfarm/plugin").replace("sha512-bbb", "sha512-ccc");
-	assert.match(compareLockfiles(UPSTREAM, bumped).problems.join(), /section "packages" differs/);
+	assert.match(compareLockfiles(UPSTREAM, bumped).problems.join(), /integrity of "react@19.2.0" changed/);
 	assert.match(compareLockfiles(UPSTREAM, withImporter(UPSTREAM, "somewhere/else")).problems.join(), /unexpected new importer/);
 });
 
