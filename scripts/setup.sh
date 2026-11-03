@@ -33,6 +33,19 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+# The registry occasionally times out on one of the ~2,000 packages EmDash's pnpm
+# verifies against its supply-chain policy. Installs are idempotent: retry them.
+retry() {
+	local n=1
+	until "$@"; do
+		[[ $n -ge 3 ]] && { echo "Failed after $n attempts: $*" >&2; return 1; }
+		echo "Registry error; retrying in $((n * 30))s (attempt $((n + 1)) of 3): $*" >&2
+		sleep $((n * 30)); n=$((n + 1))
+	done
+}
+export npm_config_fetch_retries="${npm_config_fetch_retries:-5}"
+export npm_config_fetch_timeout="${npm_config_fetch_timeout:-120000}"
+
 pin() { node -e "process.stdout.write(String(require('$HERE/upstream/emdash.json')['$1']))"; }
 REPO="$(pin repository)"
 COMMIT="${REF:-$(pin commit)}"
@@ -109,7 +122,7 @@ cd "$TARGET"
 # between releases, so the committed file alone is not a fair baseline.)
 rm -rf "$TARGET/powerfarm"
 git checkout --quiet -- pnpm-workspace.yaml pnpm-lock.yaml
-pnpm install --lockfile-only --no-frozen-lockfile
+retry pnpm install --lockfile-only --no-frozen-lockfile
 cp pnpm-lock.yaml .baseline-lock.yaml
 if ! cmp -s .baseline-lock.yaml <(git show HEAD:pnpm-lock.yaml); then
 	echo "Note: EmDash's committed lockfile is not in sync with its package files at this commit; using pnpm's resolution of EmDash's own tree as the baseline."
@@ -118,7 +131,7 @@ fi
 link_powerfarm
 # The lockfile gains importer entries for Powerfarm's packages, so it cannot be frozen;
 # check-lockfile.mjs then proves Powerfarm added or changed no package.
-pnpm install --no-frozen-lockfile
+retry pnpm install --no-frozen-lockfile
 node "$HERE/scripts/check-lockfile.mjs" .baseline-lock.yaml pnpm-lock.yaml
 pnpm build
 
