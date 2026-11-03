@@ -1,0 +1,77 @@
+/*
+ * Powerfarm brand tokens: one source for the admin theme (../admin/theme.css)
+ * and for Powerfarm's own pages (site/src/pages), which import it as
+ * "@powerfarm/emdash-plugin/brand/tokens.css". docs/BRAND.md explains the roles.
+ *
+ *   black, cream  the base: every surface, line and text tone mixes the two
+ *   ember         the action colour: primary actions, focus, links
+ *   signal pink   a person must act ("needs your signature"); always with a word or icon
+ *   amber         details only: status dots, thin rules, seals; never a button
+ *
+ * Ember and pink are almost equally bright (1.12:1), so they are never told
+ * apart by colour alone.
+ */
+:root {
+	--pf-black: #080702;
+	--pf-cream: #f8dfc1;
+	--pf-ember: #ff6a1f;
+	--pf-ember-deep: #a83a08;
+	--pf-pink: #ff5c93;
+	--pf-pink-deep: #a61e52;
+	--pf-amber: #ffb02e;
+	--pf-amber-deep: #8a5300;
+	--pf-danger: #e5484d;
+	--pf-danger-deep: #b3261e;
+
+	--pf-font: var(--font-emdash, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
+	--pf-motion-fast: 120ms;
+	--pf-motion: 180ms;
+	--pf-ease: cubic-bezier(0.2, 0, 0, 1);
+
+	/* Light: cream base, black ink; ember and pink use their deep tones as text. */
+	--pf-bg: var(--pf-cream);
+	--pf-surface: #fff8ee;
+	--pf-sunken: #efd2b0;
+	--pf-line: rgb(8 7 2 / 0.14);
+	--pf-line-strong: rgb(8 7 2 / 0.3);
+	--pf-ink: var(--pf-black);
+	--pf-ink-subtle: #5c5244;
+	--pf-action: var(--pf-black);
+	--pf-action-ink: var(--pf-cream);
+	--pf-action-hover: #2b261d;
+	--pf-link: var(--pf-ember-deep);
+	--pf-focus: var(--pf-ember-deep);
+	--pf-attention: var(--pf-pink-deep);
+	--pf-detail: var(--pf-amber-deep);
+	--pf-error: var(--pf-danger-deep);
+	color-scheme: light;
+}
+
+/* Dark: black base, cream ink. Bright ember carries buttons, with black text. */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--pf-bg: var(--pf-black);
+		--pf-surface: #15120c;
+		--pf-sunken: #050401;
+		--pf-line: rgb(248 223 193 / 0.14);
+		--pf-line-strong: rgb(248 223 193 / 0.3);
+		--pf-ink: var(--pf-cream);
+		--pf-ink-subtle: #a8977f;
+		--pf-action: var(--pf-ember);
+		--pf-action-ink: var(--pf-black);
+		--pf-action-hover: #ff8547;
+		--pf-link: var(--pf-ember);
+		--pf-focus: var(--pf-ember);
+		--pf-attention: var(--pf-pink);
+		--pf-detail: var(--pf-amber);
+		--pf-error: var(--pf-danger);
+		color-scheme: dark;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--pf-motion-fast: 0ms;
+		--pf-motion: 0ms;
+	}
+}

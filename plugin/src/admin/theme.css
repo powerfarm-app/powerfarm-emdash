@@ -1,0 +1,102 @@
+/*
+ * Powerfarm's theme for the EmDash admin, without patching EmDash.
+ *
+ * EmDash's admin is built on Kumo, whose colours are CSS variables
+ * (--color-kumo-*, --text-color-kumo-*) set on <html>; the admin shell sets
+ * data-theme="classic" there and data-mode="light" or "dark". This file is
+ * imported by the plugin's admin entry, which EmDash bundles into every admin
+ * page, and redefines those variables:
+ *
+ *   - Kumo's own values live in CSS layers; these rules are unlayered, so they win.
+ *   - EmDash's classic light values are unlayered too; the `html` in each
+ *     selector gives these one more point of specificity, so they win whatever
+ *     order the stylesheets load in.
+ *
+ * Kumo paints primary buttons in --color-kumo-brand (lightened up to 30%) with
+ * white text that cannot be changed. So brand is black on cream and deep
+ * ember on black: both keep white text at 4.5:1 or better. Bright ember is the
+ * link and accent colour on black; on cream, links take deep ember.
+ *
+ * Kumo's warning colour is orange, which would read as the brand, so warnings
+ * use amber, the colour for status details.
+ *
+ * The values are the palette in ../brand/tokens.css, written out: that file
+ * follows the system colour scheme, while the admin follows its own
+ * light/dark switch, so it is not imported here.
+ *
+ * scripts/visual-check.mjs checks in a browser that these values apply, in both modes.
+ */
+
+html[data-theme="classic"]:not([data-mode="dark"]) {
+	--color-kumo-canvas: #f8dfc1;
+	--color-kumo-elevated: #f8dfc1;
+	--color-kumo-recessed: #ebcda9;
+	--color-kumo-base: #fff8ee;
+	--color-kumo-overlay: #fff8ee;
+	--color-kumo-control: #fffbf5;
+	--color-kumo-tint: #f3d6b4;
+	--color-kumo-fill: #eacba6;
+	--color-kumo-fill-hover: #e0be96;
+	--color-kumo-contrast: #080702;
+	--color-kumo-interact: #d9b68c;
+	--color-kumo-line: rgb(8 7 2 / 0.13);
+	--color-kumo-hairline: rgb(8 7 2 / 0.07);
+
+	--color-kumo-brand: #080702;
+	--color-kumo-brand-hover: #2b261d;
+	--color-kumo-focus: #a83a08;
+
+	--color-kumo-warning: #8a5300;
+	--color-kumo-warning-tint: rgb(255 176 46 / 0.22);
+	--color-kumo-danger: #b3261e;
+
+	--text-color-kumo-default: #1c1810;
+	--text-color-kumo-strong: #080702;
+	--text-color-kumo-subtle: #5c5244;
+	--text-color-kumo-inactive: #a8977f;
+	--text-color-kumo-placeholder: #8a7c69;
+	--text-color-kumo-inverse: #f8dfc1;
+	--text-color-kumo-brand: #a83a08;
+	--text-color-kumo-link: #a83a08;
+	--text-color-kumo-warning: #8a5300;
+	--text-color-kumo-danger: #b3261e;
+}
+
+html[data-theme="classic"][data-mode="dark"] {
+	--color-kumo-canvas: #080702;
+	--color-kumo-elevated: #0e0c07;
+	--color-kumo-recessed: #050401;
+	--color-kumo-base: #15120c;
+	--color-kumo-overlay: #1e1a13;
+	--color-kumo-control: #110f09;
+	--color-kumo-tint: #26211a;
+	--color-kumo-fill: #26211a;
+	--color-kumo-fill-hover: #332c22;
+	--color-kumo-contrast: #f8dfc1;
+	--color-kumo-interact: #3a3328;
+	--color-kumo-line: rgb(248 223 193 / 0.14);
+	--color-kumo-hairline: rgb(248 223 193 / 0.08);
+
+	--color-kumo-brand: #a83a08;
+	--color-kumo-brand-hover: #c2410c;
+	--color-kumo-focus: #ff6a1f;
+
+	--color-kumo-warning: #ffb02e;
+	--color-kumo-warning-tint: rgb(255 176 46 / 0.16);
+	--color-kumo-danger: #e5484d;
+
+	--text-color-kumo-default: #f8dfc1;
+	--text-color-kumo-strong: #fff1e0;
+	--text-color-kumo-subtle: #a8977f;
+	--text-color-kumo-inactive: #5e5446;
+	--text-color-kumo-placeholder: #7d6f5c;
+	--text-color-kumo-inverse: #080702;
+	--text-color-kumo-brand: #ff6a1f;
+	--text-color-kumo-link: #ff6a1f;
+	--text-color-kumo-warning: #ffb02e;
+	--text-color-kumo-danger: #e5484d;
+}
+
+html[data-theme="classic"] ::selection {
+	background: rgb(255 106 31 / 0.35);
+}
