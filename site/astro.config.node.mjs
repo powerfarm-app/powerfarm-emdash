@@ -12,6 +12,7 @@ import emdash, { local } from "emdash/astro";
 import { postgres, sqlite } from "emdash/db";
 
 import { powerfarmPaths } from "./powerfarm.paths.mjs";
+import * as brand from "./brand.mjs";
 
 const paths = powerfarmPaths();
 const siteUrl = process.env.EMDASH_SITE_URL;
@@ -44,7 +45,11 @@ export default defineConfig({
 			// Trusted, in-process plugins only. No sandboxRunner is configured, so nothing can be
 			// installed from the plugin registry at runtime.
 			plugins: [powerfarm(), auditLog],
+			// Powerfarm's name, logo and font in the admin (brand.mjs, docs/BRAND.md).
+			admin: brand.admin,
+			fonts: false,
 		}),
 	],
+	fonts: brand.fonts,
 	devToolbar: { enabled: false },
 });

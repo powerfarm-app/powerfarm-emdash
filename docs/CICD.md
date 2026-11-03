@@ -7,7 +7,7 @@ The plan is in the doc *Powerfarm CI/CD — GitHub to Cloudflare plan*. This pag
 | Workflow | When | What it proves | Secrets |
 | --- | --- | --- | --- |
 | `ci.yml` → *Plugin and Mac tests* | Every PR and push to `main` | Plugin tests (Identity, MDM, release gate, OIDC, seals), Mac bridge tests, the lockfile rule, script syntax | None |
-| `ci.yml` → *Build on pinned EmDash* | Every PR and push to `main` | `scripts/setup.sh` end to end: the patches apply, no new dependencies, EmDash build, patch tests, plugin typecheck, `astro check`, seed and every migration validated, Worker build, scheduler wiring | None |
+| `ci.yml` → *Build on pinned EmDash* | Every PR and push to `main` | `scripts/setup.sh` end to end: the patches apply, no new dependencies, EmDash build, patch tests, plugin typecheck, `astro check`, seed and every migration validated, Worker build, scheduler wiring; then the brand in Chromium, light and dark, production build and signed-in admin (`scripts/visual-check.mjs`, [BRAND.md](BRAND.md)), with the screenshots kept as the run's artifact | None |
 | `upstream.yml` | Mondays, or by hand | Whether the newest EmDash release would work: one issue per release with the result | `GITHUB_TOKEN` (issues only) |
 | Dependabot | Weekly | Updates for the pinned GitHub Actions only | — |
 

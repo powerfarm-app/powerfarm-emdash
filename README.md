@@ -35,7 +35,7 @@ Requires Node.js 22.16+ and git; pnpm comes through corepack at the version EmDa
 
 Reference: [ARCHITECTURE.md](docs/ARCHITECTURE.md),
 [ONTOLOGY.md](docs/ONTOLOGY.md), [ONTOLOGY-V1.2.md](docs/ONTOLOGY-V1.2.md), [ENGINEERING.md](docs/ENGINEERING.md),
-[PUBLICATION.md](docs/PUBLICATION.md) (public site and future domains),
+[PUBLICATION.md](docs/PUBLICATION.md) (public site and future domains), [BRAND.md](docs/BRAND.md) (colours, logo, font, and where EmDash takes them),
 [MIGRATION.md](docs/MIGRATION.md) (1.1 → 1.2, 1.0 → 1.1), [UPSTREAM.md](docs/UPSTREAM.md), [CICD.md](docs/CICD.md),
 [IMPLEMENTATION-REPORT-1.4.md](docs/IMPLEMENTATION-REPORT-1.4.md), [IMPLEMENTATION-REPORT-1.3.md](docs/IMPLEMENTATION-REPORT-1.3.md), [IMPLEMENTATION-REPORT-1.2.md](docs/IMPLEMENTATION-REPORT-1.2.md),
 [IMPLEMENTATION-REPORT.md](docs/IMPLEMENTATION-REPORT.md) (1.1).

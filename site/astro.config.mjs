@@ -17,6 +17,7 @@ import auditLog from "@emdash-cms/plugin-audit-log";
 import { powerfarm } from "@powerfarm/emdash-plugin";
 import { defineConfig } from "astro/config";
 import emdash from "emdash/astro";
+import * as brand from "./brand.mjs";
 
 export default defineConfig({
 	output: "server",
@@ -39,7 +40,11 @@ export default defineConfig({
 			// and a skipped migration makes the Worker answer 503 instead of migrating
 			// behind everyone's back. Local dev keeps migrating on its own.
 			migrations: { runtime: "check", dev: "auto" },
+			// Powerfarm's name, logo and font in the admin (brand.mjs, docs/BRAND.md).
+			admin: brand.admin,
+			fonts: false,
 		}),
 	],
+	fonts: brand.fonts,
 	devToolbar: { enabled: false },
 });
