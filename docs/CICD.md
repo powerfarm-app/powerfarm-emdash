@@ -19,6 +19,15 @@ Rules in the workflows:
 
 **Live sites never migrate themselves.** `site/astro.config.mjs` sets `migrations: { runtime: "check" }`, so the Worker answers 503 rather than migrate its own database. On the first deploy, and after any EmDash upgrade, run `pnpm --dir site cf:migrate:status`, then `cf:migrate`, before using the site. From phase 2 the deploy pipeline does this.
 
+## Run the same checks on your machine
+
+```bash
+bash scripts/test.sh           # quick tests, then the full build on pinned EmDash (10–30 min the first time)
+bash scripts/test.sh --quick   # only the plugin and Mac tests (seconds)
+```
+
+Prints PASS/FAIL per step and a summary; the full output goes to `.upstream/test-<time>.log`.
+
 ## Repository settings to turn on (GitHub → Settings)
 
 1. **Branch ruleset for `main`:**

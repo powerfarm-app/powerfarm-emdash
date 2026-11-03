@@ -18,7 +18,7 @@ Cloudflare, and the code for the lab Mac minis (later, the iPhone Identity App).
 
 ```bash
 git clone https://github.com/powerfarm-app/powerfarm-emdash && cd powerfarm-emdash
-bash scripts/setup.sh        # EmDash at the pin into .upstream/emdash, patches, build, all checks
+bash scripts/test.sh         # every check CI runs, with a PASS/FAIL summary (--quick: seconds)
 ```
 
 Requires Node.js 22.16+ and git; pnpm comes through corepack at the version EmDash pins.
