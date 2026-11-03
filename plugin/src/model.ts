@@ -19,7 +19,7 @@
  */
 
 export const PLUGIN_ID = "powerfarm";
-export const PLUGIN_VERSION = "1.4.0";
+export const PLUGIN_VERSION = "1.4.1";
 /** Content model the plugin expects; status reports what an installation is missing (docs/ONTOLOGY-V1.2.md, migration). */
 export const SCHEMA_VERSION = "1.3.0";
 

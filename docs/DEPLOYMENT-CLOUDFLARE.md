@@ -34,7 +34,7 @@ session), and long `IN (…)` lists are split to stay under D1's 100 bound param
   Time Travel instead of 7. Check current pricing; nothing here needs more.
 - On your workstation: Node 22.16+, git, a clone of this repository, and
   `bash scripts/setup.sh` run once. It fetches EmDash at the pin into
-  `.upstream/emdash`, applies patches 0001 and 0002, builds, runs the tests and
+  `.upstream/emdash`, applies patches 0001–0003, builds, runs the tests and
   builds the Worker. CI runs the same script on every PR.
 
 ## 2. Cloudflare Access first (before the first deploy)

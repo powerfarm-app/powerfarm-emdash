@@ -18,7 +18,7 @@ import { z } from "astro/zod";
 import type { PluginRoute, RouteContext } from "emdash";
 import { definePluginRoute, pluginResponse, PluginRouteError } from "emdash";
 
-import { authorize, CAPABILITY_IDS, grantsHeld, principalBySubject, principalOf, type Principal } from "./authority.js";
+import { authorize, CAPABILITY_IDS, grantsHeld, principalById, principalOf, type Principal } from "./authority.js";
 import { verifyBridgeRequest } from "./bridge-auth.js";
 import { verifyAccessAssertion } from "./cloudflare.js";
 import type { ContentReader } from "./content.js";
@@ -54,7 +54,6 @@ function oidcError(e: unknown) {
 }
 
 const json = (status: number, value: unknown) => pluginResponse({ status, headers: { "content-type": "application/json" }, body: { kind: "text", value: JSON.stringify(value) } });
-const originOf = (rc: RouteContext) => new URL(rc.request.url).origin;
 
 /** Signed JSON routes for CI and the release service: same HMAC scheme as the bridge, their own ids and secrets. */
 function signedRoute<T extends z.ZodType>(name: string, schema: T, who: { id: string; secret: string }, handler: (ctx: RouteContext, input: z.infer<T>) => Promise<unknown>): PluginRoute {
@@ -122,10 +121,13 @@ export function identityRoutes(): Record<string, PluginRoute> {
 				const rc = ctx as unknown as RouteContext;
 				try {
 					const a = await verifyAccessAssertion(rc as never, rc.request.headers.get("cf-access-jwt-assertion"));
-					const issued = await rc.kv.get<{ subject: string }>(`oidc:issued:${a.email}`);
+					if (!a.principalId) return json(404, { error: "unknown_principal", message: "This Access login did not come through Powerfarm (no pf_principal_id claim: break-glass, another provider, or the claim is not configured)." });
 					const reader = await getReader();
-					const p = issued ? await principalBySubject(reader, issued.subject) : null;
-					if (!p) return json(404, { error: "unknown_principal", message: "This Access identity was not issued by Powerfarm (break-glass or another provider)." });
+					const p = await principalById(reader, a.principalId);
+					if (!p) return json(404, { error: "unknown_principal", message: "No Powerfarm principal has this id." });
+					// A valid Access session is not authority: an inactive principal is refused here
+					// even while Cloudflare still honours a session issued before the suspension.
+					if (!p.active) return json(403, { error: "principal_inactive", message: `${p.subject} is not active.` });
 					return json(200, { principal: await context(reader, p) });
 				} catch (e) {
 					return json(401, { error: "invalid_assertion", message: e instanceof Error ? e.message : String(e) });
@@ -179,7 +181,8 @@ export function identityRoutes(): Record<string, PluginRoute> {
 			handler: async (ctx) => {
 				const user = sessionUser(ctx as unknown as RouteContext);
 				try {
-					return { location: await continueAuthorization(ctx as never, await getReader(), (ctx.input as { rid: string }).rid, { id: user.id }) };
+					const caller = (ctx as unknown as RouteContext).user as unknown as { email?: string; emailVerified?: boolean } | undefined;
+					return { location: await continueAuthorization(ctx as never, await getReader(), (ctx.input as { rid: string }).rid, { id: user.id, email: caller?.email, emailVerified: caller?.emailVerified }) };
 				} catch (e) {
 					if (e instanceof OidcError) throw new PluginRouteError(e.error, e.message, e.status);
 					throw e;
@@ -198,14 +201,20 @@ export function identityRoutes(): Record<string, PluginRoute> {
 				if (Array.isArray((input as { entries?: unknown }).entries)) for (const e of (input as { entries: Array<{ name: string; value?: string }> }).entries) form[e.name] = typeof e.value === "string" ? e.value : undefined;
 				else for (const [k, v] of Object.entries(input as Record<string, unknown>)) form[k] = typeof v === "string" ? v : undefined;
 				try {
-					return json(200, await exchangeCode(ctx as never, await getReader(), originOf(rc), form, rc.request.headers.get("authorization")));
+					return json(200, await exchangeCode(ctx as never, await getReader(), form, rc.request.headers.get("authorization")));
 				} catch (e) {
 					return oidcError(e);
 				}
 			},
 		}) as PluginRoute,
 		"oidc/jwks": definePluginRoute({ public: true, methods: ["GET"], request: { body: "none" }, response: "raw", handler: async (ctx) => json(200, await jwks(ctx as never)) }) as PluginRoute,
-		"oidc/openid-configuration": definePluginRoute({ public: true, methods: ["GET"], request: { body: "none" }, response: "raw", handler: async (ctx) => json(200, discovery(originOf(ctx as unknown as RouteContext))) }) as PluginRoute,
+		"oidc/openid-configuration": definePluginRoute({ public: true, methods: ["GET"], request: { body: "none" }, response: "raw", handler: async (ctx) => {
+				try {
+					return json(200, discovery(ctx as never));
+				} catch (e) {
+					return oidcError(e);
+				}
+			} }) as PluginRoute,
 		"records/seal": {
 			permission: "content:read",
 			input: z.object({ collection: z.string().min(1).max(40), ref: z.string().min(1).max(120) }),

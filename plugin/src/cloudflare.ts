@@ -25,7 +25,7 @@ type Ctx = {
 
 const fetcher = (ctx: Ctx): Fetch => ctx.http?.fetch.bind(ctx.http) ?? ((u, i) => fetch(u, i));
 
-export async function verifyAccessAssertion(ctx: Ctx, token: string | null, now = Math.floor(Date.now() / 1000)): Promise<{ email: string; sub: string; payload: Record<string, unknown> }> {
+export async function verifyAccessAssertion(ctx: Ctx, token: string | null, now = Math.floor(Date.now() / 1000)): Promise<{ email: string; sub: string; principalId: string | null; payload: Record<string, unknown> }> {
 	if (!token) throw new JwtError("No Access assertion");
 	const team = ((await ctx.settings.get<string>(CF_SETTINGS.teamDomain)) ?? "").trim().replace(/^https:\/\//, "").replace(/\/$/, "");
 	const audiences = ((await ctx.settings.get<string>(CF_SETTINGS.audiences)) ?? "").split(/[\s,]+/).filter(Boolean);
@@ -41,7 +41,13 @@ export async function verifyAccessAssertion(ctx: Ctx, token: string | null, now 
 	}
 	const payload = await verifyJwt(token, cached.keys, { issuer: `https://${team}`, audiences, now });
 	if (typeof payload.email !== "string" || typeof payload.sub !== "string") throw new JwtError("Assertion without a user (a service token)");
-	return { email: payload.email.toLowerCase(), sub: payload.sub, payload };
+	// The person, by Powerfarm's permanent id: Cloudflare copies the ID token's custom claim
+	// pf_principal_id into oidc_fields when the Access IdP is configured with it
+	// (docs/IDENTITY.md §5.2). Absent = this login did not come through Powerfarm.
+	const fields = payload.oidc_fields;
+	const raw = fields && typeof fields === "object" && !Array.isArray(fields) ? (fields as Record<string, unknown>).pf_principal_id : undefined;
+	const principalId = typeof raw === "string" && raw.length > 0 ? raw : null;
+	return { email: payload.email.toLowerCase(), sub: payload.sub, principalId, payload };
 }
 
 interface AccessLogRow {
