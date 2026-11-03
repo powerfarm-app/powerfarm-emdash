@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Daily offsite backup of Powerfarm on Cloudflare (D1 + R2) to this Mac.
+    cp org.powerfarm.cf-backup.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.powerfarm.cf-backup.plist
+  Replace /Users/USER, the Node path (`which node`) and the backup folder first.
+  wrangler must be logged in for this user (npx wrangler login, once), and
+  ~/.powerfarm/r2-backup.env must hold a READ-ONLY R2 token (mode 600):
+    R2_ACCOUNT_ID=...  AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...
+  A backup is only good once scripts/restore.mjs has checked it: do that monthly.
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.powerfarm.cf-backup</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/zsh</string>
+		<string>-c</string>
+		<string>set -a; . "$HOME/.powerfarm/r2-backup.env"; set +a; cd "$HOME/powerfarm-emdash/powerfarm/site" &amp;&amp; /opt/homebrew/bin/node ../scripts/cf-backup.mjs --out "/Volumes/Offsite/powerfarm"</string>
+	</array>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>3</integer>
+		<key>Minute</key>
+		<integer>17</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/Users/USER/.powerfarm/logs/cf-backup.out.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/USER/.powerfarm/logs/cf-backup.err.log</string>
+</dict>
+</plist>

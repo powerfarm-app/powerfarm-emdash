@@ -1,0 +1,34 @@
+{
+	"name": "@powerfarm/emdash-plugin",
+	"version": "1.4.0",
+	"private": true,
+	"description": "Powerfarm graph, entities and identity registry, lifecycle controls, onboarding blueprints, Mission 001 recovery workflow and Apple Hardware Bridge endpoints for EmDash",
+	"type": "module",
+	"main": "src/index.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./admin": "./src/admin/index.tsx"
+	},
+	"files": [
+		"src"
+	],
+	"license": "MIT",
+	"peerDependencies": {
+		"@cloudflare/kumo": "catalog:",
+		"astro": ">=6.0.0-beta.0",
+		"emdash": "workspace:*",
+		"react": "^18.0.0 || ^19.0.0"
+	},
+	"devDependencies": {
+		"@cloudflare/kumo": "catalog:",
+		"@types/react": "catalog:",
+		"astro": "catalog:",
+		"emdash": "workspace:*",
+		"react": "catalog:",
+		"typescript": "catalog:"
+	},
+	"scripts": {
+		"typecheck": "tsgo --noEmit",
+		"test": "node --import ./test/ts-resolve.mjs --experimental-strip-types --no-warnings --test test/*.test.ts"
+	}
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent for the Powerfarm bridge. Install for the logged-in user:
+    cp org.powerfarm.bridge.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.powerfarm.bridge.plist
+  Replace /Users/USER and the Node path first (`which node`).
+  Under launchd there is no terminal, so destructive jobs fail closed while
+  requireLocalConfirmation is true. Run `powerfarm-bridge once` in a terminal
+  for restores.
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.powerfarm.bridge</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/bin/node</string>
+		<string>/Users/USER/powerfarm/bridge/bin/powerfarm-bridge.mjs</string>
+		<string>run</string>
+		<string>--config</string>
+		<string>/Users/USER/.powerfarm/bridge.json</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>/Users/USER/.powerfarm/logs/bridge.out.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/USER/.powerfarm/logs/bridge.err.log</string>
+</dict>
+</plist>

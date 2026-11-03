@@ -1,0 +1,1849 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Powerfarm 1.1 to 1.2",
+		"description": "Additive migration: entities, automation, evidence subject fields",
+		"author": "Powerfarm"
+	},
+	"collections": [
+		{
+			"slug": "evidence",
+			"label": "Evidence",
+			"labelSingular": "Evidence item",
+			"group": "Powerfarm",
+			"sortOrder": 6,
+			"dateField": "captured_at",
+			"description": "Append-only. Files are hashed by the server.",
+			"supports": [
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "evidence_type",
+					"label": "Type",
+					"type": "select",
+					"validation": {
+						"options": [
+							"report",
+							"manifest",
+							"log",
+							"photo",
+							"screenshot",
+							"attestation"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "attests",
+					"label": "Attests",
+					"type": "select",
+					"validation": {
+						"options": [
+							"account_security",
+							"activation_lock",
+							"management_enrollment",
+							"setup_review",
+							"host_bootstrap",
+							"trust_signoff",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline_reviewed",
+							"maintenance_plan",
+							"maintenance_review",
+							"contract_signed",
+							"retirement_approved"
+						]
+					}
+				},
+				{
+					"slug": "artifact_kind",
+					"label": "Artifact kind",
+					"type": "string"
+				},
+				{
+					"slug": "asset_tag",
+					"label": "Asset tag",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "op_code",
+					"label": "Operation code",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "identifier",
+					"label": "Identifier attested (namespace:value)",
+					"type": "string"
+				},
+				{
+					"slug": "job_id",
+					"label": "Job",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "op_revision",
+					"label": "Approved revision",
+					"type": "string"
+				},
+				{
+					"slug": "captured_at",
+					"label": "Captured at",
+					"type": "datetime"
+				},
+				{
+					"slug": "file",
+					"label": "File",
+					"type": "file"
+				},
+				{
+					"slug": "media_id",
+					"label": "Media id",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "sha256",
+					"label": "SHA-256",
+					"type": "string"
+				},
+				{
+					"slug": "size_bytes",
+					"label": "Size (bytes)",
+					"type": "integer"
+				},
+				{
+					"slug": "original_filename",
+					"label": "Original filename",
+					"type": "string"
+				},
+				{
+					"slug": "mime_type",
+					"label": "Type",
+					"type": "string"
+				},
+				{
+					"slug": "digest_status",
+					"label": "Digest",
+					"type": "select",
+					"validation": {
+						"options": [
+							"server_verified",
+							"unverified",
+							"none",
+							"mismatch"
+						]
+					}
+				},
+				{
+					"slug": "execution_mode",
+					"label": "Execution mode",
+					"type": "string"
+				},
+				{
+					"slug": "signed_by",
+					"label": "Signed by",
+					"type": "string"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				}
+			]
+		},
+		{
+			"slug": "clients",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"client_kind"
+				]
+			},
+			"label": "Clients",
+			"labelSingular": "Client",
+			"group": "Entities",
+			"sortOrder": 40,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Organisations and people Powerfarm serves. Register in Powerfarm → Register; publishing is approval. Activation needs its controls met.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Client code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_clients",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "client_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"organization",
+							"individual"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "legal_name",
+					"label": "Legal name",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "country",
+					"label": "Country",
+					"type": "string"
+				},
+				{
+					"slug": "website",
+					"label": "Website",
+					"type": "url"
+				},
+				{
+					"slug": "products",
+					"label": "Products",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Sponsored projects",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "contracts",
+					"label": "Contracts",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "products",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"product_kind"
+				]
+			},
+			"label": "Products",
+			"labelSingular": "Product",
+			"group": "Entities",
+			"sortOrder": 41,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Product code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_products",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "product_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"offering",
+							"internal",
+							"platform"
+						]
+					}
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "services",
+					"label": "Uses services",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "clients",
+					"label": "Clients",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "services",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"service_kind"
+				]
+			},
+			"label": "Services",
+			"labelSingular": "Service",
+			"group": "Entities",
+			"sortOrder": 42,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "The canonical service catalogue. Register a service once; projects, products and contracts reference it. Deployments are service instances.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Service code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_services",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"application",
+							"data",
+							"compute",
+							"storage",
+							"network",
+							"identity",
+							"messaging",
+							"observability",
+							"other"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "support_hours",
+					"label": "Support hours",
+					"type": "string"
+				},
+				{
+					"slug": "software",
+					"label": "Implemented by",
+					"type": "reference",
+					"validation": {
+						"relation": "services_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "instances",
+					"label": "Instances",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Used by products",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "service_instances",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"environment",
+					"classification"
+				]
+			},
+			"label": "Service instances",
+			"labelSingular": "Service instance",
+			"group": "Entities",
+			"sortOrder": 43,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "One concrete deployment of a catalogue service. Credentials are never stored here: record where they live in Secret references.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Instance code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_service_instances",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service",
+					"label": "Service",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "child",
+						"multiple": false
+					},
+					"required": true
+				},
+				{
+					"slug": "environment",
+					"label": "Environment",
+					"type": "select",
+					"validation": {
+						"options": [
+							"production",
+							"staging",
+							"development",
+							"test"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "region",
+					"label": "Region or site",
+					"type": "string"
+				},
+				{
+					"slug": "endpoint",
+					"label": "Endpoint",
+					"type": "string"
+				},
+				{
+					"slug": "secret_refs",
+					"label": "Secret references",
+					"type": "json",
+					"widget": "powerfarm:secret-refs"
+				},
+				{
+					"slug": "hosts",
+					"label": "Runs on",
+					"type": "reference",
+					"validation": {
+						"relation": "service_instances_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_service_instances",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "contracts",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"contract_kind"
+				]
+			},
+			"dateField": "end_date",
+			"label": "Contracts",
+			"labelSingular": "Contract",
+			"group": "Entities",
+			"sortOrder": 44,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Agreement records. Confidential by default. Signing is a person's attestation with the signed copy attached; nothing signs automatically.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Contract code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "confidential"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "contract_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"msa",
+							"sow",
+							"sla",
+							"nda",
+							"license",
+							"dpa",
+							"other"
+						]
+					}
+				},
+				{
+					"slug": "effective_date",
+					"label": "Effective",
+					"type": "datetime"
+				},
+				{
+					"slug": "end_date",
+					"label": "Ends",
+					"type": "datetime"
+				},
+				{
+					"slug": "renewal_date",
+					"label": "Renewal or notice date",
+					"type": "datetime"
+				},
+				{
+					"slug": "notice_days",
+					"label": "Notice period (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "document",
+					"label": "Document",
+					"type": "file"
+				},
+				{
+					"slug": "client",
+					"label": "Client",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Covers products",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "services",
+					"label": "Covers services",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "blueprints",
+			"admin": {
+				"listColumns": [
+					"code",
+					"target_collection",
+					"trigger",
+					"blueprint_version"
+				]
+			},
+			"label": "Blueprints",
+			"labelSingular": "Blueprint",
+			"group": "Automation",
+			"sortOrder": 50,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Onboarding templates. Publishing (administrators only) activates that exact revision. Steps use a fixed action catalogue; nothing executes code.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Blueprint code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "target_collection",
+					"label": "Applies to",
+					"type": "select",
+					"validation": {
+						"options": [
+							"clients",
+							"products",
+							"services",
+							"service_instances",
+							"contracts"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "trigger",
+					"label": "Runs when",
+					"type": "select",
+					"validation": {
+						"options": [
+							"registered",
+							"activated"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "description",
+					"label": "Purpose",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "steps",
+					"label": "Steps",
+					"type": "json",
+					"required": true
+				},
+				{
+					"slug": "failure_procedure",
+					"label": "If a run fails",
+					"type": "text"
+				},
+				{
+					"slug": "blueprint_version",
+					"label": "Version",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"slug": "work_items",
+			"admin": {
+				"listColumns": [
+					"work_kind",
+					"work_status",
+					"subject",
+					"pillar"
+				]
+			},
+			"dateField": "due_at",
+			"label": "Work items",
+			"labelSingular": "Work item",
+			"group": "Automation",
+			"sortOrder": 51,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Tasks, approvals and link requests. Approvals are resolved in Powerfarm → Automation by a person with the required role.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Work item code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "work_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"task",
+							"approval",
+							"link_request",
+							"review",
+							"control",
+							"attention",
+							"note"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "pillar",
+					"label": "Pillar",
+					"type": "select",
+					"validation": {
+						"options": [
+							"identity",
+							"authority",
+							"security",
+							"maintenance",
+							"general"
+						]
+					},
+					"indexed": true
+				},
+				{
+					"slug": "work_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"open",
+							"done",
+							"rejected",
+							"cancelled",
+							"skipped"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "open"
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "due_at",
+					"label": "Due",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "required_role",
+					"label": "Role required to resolve",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "decision",
+					"label": "Decision (approvals: approve / reject; needs attention: retry / done_by_hand / give_up)",
+					"type": "select",
+					"validation": {
+						"options": [
+							"approve",
+							"reject",
+							"retry",
+							"done_by_hand",
+							"give_up"
+						]
+					}
+				},
+				{
+					"slug": "resolution",
+					"label": "Resolution note",
+					"type": "text"
+				},
+				{
+					"slug": "resolved_by",
+					"label": "Resolved by",
+					"type": "string"
+				},
+				{
+					"slug": "resolved_at",
+					"label": "Resolved",
+					"type": "datetime"
+				},
+				{
+					"slug": "control",
+					"label": "Control awaited",
+					"type": "select",
+					"validation": {
+						"options": [
+							"owner_assigned",
+							"identity_recorded",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline",
+							"maintenance_plan",
+							"service_linked",
+							"secrets_referenced",
+							"counterparty_linked",
+							"dates_recorded",
+							"contract_signed",
+							"review_current",
+							"renewal_not_due",
+							"retirement_approved",
+							"no_active_dependants"
+						]
+					}
+				},
+				{
+					"slug": "run_id",
+					"label": "Blueprint run",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "step_id",
+					"label": "Step",
+					"type": "string"
+				},
+				{
+					"slug": "blueprint_code",
+					"label": "Blueprint",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "blueprint_revision",
+					"label": "Blueprint revision",
+					"type": "string"
+				},
+				{
+					"slug": "initiated_by",
+					"label": "Run initiated by",
+					"type": "string"
+				},
+				{
+					"slug": "separate_from_initiator",
+					"label": "Initiator may not resolve",
+					"type": "boolean"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "assignee",
+					"label": "Assignee",
+					"type": "reference",
+					"validation": {
+						"relation": "people_work_items",
+						"relationSide": "child",
+						"multiple": false
+					}
+				}
+			]
+		},
+		{
+			"slug": "identifiers",
+			"admin": {
+				"listColumns": [
+					"subject",
+					"namespace",
+					"source"
+				]
+			},
+			"label": "Identifiers",
+			"labelSingular": "Identifier",
+			"group": "Entities",
+			"sortOrder": 45,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "The identity registry: one entry per identifier, unique across every record type. Maintained by Powerfarm from each record's Identifiers field; administrators transfer one by changing its subject, with a rationale.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Identifier",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "identifier",
+					"label": "namespace:value",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "namespace",
+					"label": "Namespace",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "value",
+					"label": "Value",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "subject",
+					"label": "Identifies (collection:KEY)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "source",
+					"label": "Source",
+					"type": "select",
+					"validation": {
+						"options": [
+							"record",
+							"asset_mirror",
+							"transfer"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "rationale",
+					"label": "Rationale (transfers)",
+					"type": "text"
+				}
+			]
+		},
+		{
+			"slug": "exceptions",
+			"admin": {
+				"listColumns": [
+					"subject",
+					"control",
+					"code"
+				]
+			},
+			"dateField": "expires_at",
+			"label": "Security exceptions",
+			"labelSingular": "Security exception",
+			"group": "Automation",
+			"sortOrder": 52,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "A time-limited, approved waiver of one control on one entity. Publishing by an administrator is the risk acceptance.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Exception code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "control",
+					"label": "Control waived",
+					"type": "select",
+					"validation": {
+						"options": [
+							"owner_assigned",
+							"identity_recorded",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline",
+							"maintenance_plan",
+							"service_linked",
+							"secrets_referenced",
+							"counterparty_linked",
+							"dates_recorded",
+							"contract_signed",
+							"review_current",
+							"renewal_not_due",
+							"retirement_approved",
+							"no_active_dependants"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "rationale",
+					"label": "Rationale and compensating measures",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "scope_note",
+					"label": "Scope",
+					"type": "text"
+				},
+				{
+					"slug": "expires_at",
+					"label": "Expires",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				}
+			]
+		}
+	],
+	"relations": [
+		{
+			"slug": "people_clients",
+			"parentCollection": "people",
+			"childCollection": "clients",
+			"parentLabel": "Owner",
+			"childLabel": "Owns clients"
+		},
+		{
+			"slug": "people_products",
+			"parentCollection": "people",
+			"childCollection": "products",
+			"parentLabel": "Owner",
+			"childLabel": "Owns products"
+		},
+		{
+			"slug": "people_services",
+			"parentCollection": "people",
+			"childCollection": "services",
+			"parentLabel": "Owner",
+			"childLabel": "Owns services"
+		},
+		{
+			"slug": "people_service_instances",
+			"parentCollection": "people",
+			"childCollection": "service_instances",
+			"parentLabel": "Owner",
+			"childLabel": "Owns service instances"
+		},
+		{
+			"slug": "people_contracts",
+			"parentCollection": "people",
+			"childCollection": "contracts",
+			"parentLabel": "Owner",
+			"childLabel": "Owns contracts"
+		},
+		{
+			"slug": "people_work_items",
+			"parentCollection": "people",
+			"childCollection": "work_items",
+			"parentLabel": "Assignee",
+			"childLabel": "Assigned work"
+		},
+		{
+			"slug": "clients_products",
+			"parentCollection": "clients",
+			"childCollection": "products",
+			"parentLabel": "Clients",
+			"childLabel": "Products"
+		},
+		{
+			"slug": "clients_projects",
+			"parentCollection": "clients",
+			"childCollection": "projects",
+			"parentLabel": "Sponsored by",
+			"childLabel": "Sponsored projects"
+		},
+		{
+			"slug": "clients_contracts",
+			"parentCollection": "clients",
+			"childCollection": "contracts",
+			"parentLabel": "Client",
+			"childLabel": "Contracts"
+		},
+		{
+			"slug": "products_services",
+			"parentCollection": "products",
+			"childCollection": "services",
+			"parentLabel": "Used by products",
+			"childLabel": "Uses services"
+		},
+		{
+			"slug": "services_software",
+			"parentCollection": "services",
+			"childCollection": "software",
+			"parentLabel": "Implements",
+			"childLabel": "Implemented by"
+		},
+		{
+			"slug": "services_instances",
+			"parentCollection": "services",
+			"childCollection": "service_instances",
+			"parentLabel": "Service",
+			"childLabel": "Instances"
+		},
+		{
+			"slug": "service_instances_assets",
+			"parentCollection": "service_instances",
+			"childCollection": "assets",
+			"parentLabel": "Hosts instances",
+			"childLabel": "Runs on"
+		},
+		{
+			"slug": "projects_services",
+			"parentCollection": "projects",
+			"childCollection": "services",
+			"parentLabel": "Used by projects",
+			"childLabel": "Uses services"
+		},
+		{
+			"slug": "projects_service_instances",
+			"parentCollection": "projects",
+			"childCollection": "service_instances",
+			"parentLabel": "Used by projects",
+			"childLabel": "Uses instances"
+		},
+		{
+			"slug": "contracts_products",
+			"parentCollection": "contracts",
+			"childCollection": "products",
+			"parentLabel": "Covered by contracts",
+			"childLabel": "Covers products"
+		},
+		{
+			"slug": "contracts_services",
+			"parentCollection": "contracts",
+			"childCollection": "services",
+			"parentLabel": "Covered by contracts",
+			"childLabel": "Covers services"
+		}
+	],
+	"content": {
+		"blueprints": [
+			{
+				"id": "bp-client-onboarding",
+				"slug": "bp-client-onboarding",
+				"status": "draft",
+				"data": {
+					"title": "Client onboarding",
+					"code": "BP-CLIENT-ONBOARDING",
+					"target_collection": "clients",
+					"trigger": "registered",
+					"description": "When a client registration is approved: owner, identity, classification and access reviews, product links, a draft agreement for review, a maintenance plan.",
+					"steps": [
+						{
+							"id": "owner",
+							"action": "create_task",
+							"title": "Confirm the accountable owner for {{subject.title}}",
+							"pillar": "authority",
+							"description": "Set the client's Accountable owner in the editor and publish.",
+							"dueInDays": 3,
+							"when": {
+								"reference": "owner",
+								"empty": true
+							}
+						},
+						{
+							"id": "identity",
+							"action": "create_task",
+							"title": "Verify the identity of {{subject.title}}",
+							"pillar": "identity",
+							"assignee": "$subject.owner",
+							"description": "Check each identifier with its issuer. Record an identity_verified attestation (Evidence, subject {{subject.ref}}) naming the identifier; attach the issuer's record if you have it.",
+							"dueInDays": 7
+						},
+						{
+							"id": "classification",
+							"action": "create_task",
+							"title": "Review the classification of {{subject.title}} ({{subject.classification}})",
+							"pillar": "security",
+							"assignee": "$subject.owner",
+							"description": "Confirm the classification fits the information held. Record a classification_reviewed attestation.",
+							"dueInDays": 7
+						},
+						{
+							"id": "access",
+							"action": "create_task",
+							"title": "Review who may access {{subject.title}}'s records",
+							"pillar": "authority",
+							"description": "Confidential and restricted clients need an administrator's access_reviewed attestation before activation.",
+							"dueInDays": 7,
+							"when": {
+								"field": "classification",
+								"in": [
+									"confidential",
+									"restricted"
+								]
+							}
+						},
+						{
+							"id": "links",
+							"action": "request_link",
+							"title": "Link the products and shared services {{subject.title}} uses",
+							"pillar": "general",
+							"description": "Select existing Products on the client and publish. Do not register a second copy of a service that is already in the catalogue.",
+							"when": {
+								"reference": "products",
+								"empty": true
+							}
+						},
+						{
+							"id": "contract",
+							"action": "create_record",
+							"collection": "contracts",
+							"fields": {
+								"title": "Agreement with {{subject.title}}",
+								"contract_kind": "msa"
+							},
+							"references": {
+								"client": [
+									"$subject"
+								],
+								"products": [
+									"$subject.products"
+								],
+								"owner": [
+									"$subject.owner"
+								]
+							}
+						},
+						{
+							"id": "contract_review",
+							"action": "request_approval",
+							"title": "Review the draft agreement for {{subject.title}}",
+							"requiredRole": 50,
+							"description": "Open the draft contract this run created. Approve when its terms are ready to negotiate. Approving does not sign it: signing is a contract_signed attestation with the signed copy.",
+							"dependsOn": [
+								"contract"
+							]
+						},
+						{
+							"id": "maintenance",
+							"action": "create_task",
+							"title": "Set the review cadence for {{subject.title}} and record a maintenance plan",
+							"pillar": "maintenance",
+							"assignee": "$subject.owner",
+							"dueInDays": 14
+						},
+						{
+							"id": "identity_check",
+							"action": "wait_for_control",
+							"control": "identity_verified",
+							"timeoutDays": 30,
+							"dependsOn": [
+								"identity"
+							]
+						},
+						{
+							"id": "done",
+							"action": "record_provenance",
+							"title": "Onboarding work for {{subject.title}} is in place",
+							"dependsOn": [
+								"contract_review",
+								"identity_check"
+							]
+						}
+					],
+					"failure_procedure": "Open Powerfarm → Automation, read the failed step, fix the cause, then mark the step resolved or cancel the run. Never re-register the client to re-run onboarding.",
+					"blueprint_version": "1.0"
+				}
+			}
+		]
+	}
+}

@@ -1,0 +1,45 @@
+{
+	"name": "@powerfarm/site",
+	"version": "1.4.0",
+	"private": true,
+	"type": "module",
+	"emdash": {
+		"seed": "seed/seed.json"
+	},
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"build:node": "astro build --config astro.config.node.mjs",
+		"start:node": "node ./dist/server/entry.mjs",
+		"seed:validate": "emdash seed seed/seed.json --validate",
+		"seed:validate:migration": "for f in seed/migrations/*.json; do emdash seed \"$f\" --validate || exit 1; done",
+		"cf:migrate:status": "emdash migrate --status",
+		"cf:migrate": "emdash migrate",
+		"types": "emdash types",
+		"typecheck": "astro check",
+		"doctor": "emdash doctor",
+		"smoke": "node ../scripts/smoke.mjs",
+		"edge-check": "node ../scripts/edge-check.mjs",
+		"cf:backup": "node ../scripts/cf-backup.mjs",
+		"migrate:1.2": "bash ../scripts/migrate-1.2.sh",
+		"cf:types": "wrangler types",
+		"cf:deploy": "astro build && wrangler deploy"
+	},
+	"dependencies": {
+		"@astrojs/cloudflare": "catalog:",
+		"@astrojs/node": "catalog:",
+		"@astrojs/react": "catalog:",
+		"@emdash-cms/cloudflare": "workspace:*",
+		"@emdash-cms/plugin-audit-log": "workspace:*",
+		"@powerfarm/emdash-plugin": "workspace:*",
+		"astro": "catalog:",
+		"emdash": "workspace:*",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"devDependencies": {
+		"@astrojs/check": "catalog:",
+		"@cloudflare/workers-types": "catalog:",
+		"wrangler": "catalog:"
+	}
+}

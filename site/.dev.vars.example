@@ -1,0 +1,5 @@
+# Local `astro dev` / `wrangler dev` only. Copy to .dev.vars (git-ignored).
+# In production these are Worker secrets: wrangler secret put EMDASH_ENCRYPTION_KEY
+EMDASH_ENCRYPTION_KEY=generate-with-openssl-rand-base64-32
+EMDASH_PRIVATE_MEDIA=1
+EMDASH_SITE_URL=http://localhost:4321

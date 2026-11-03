@@ -1,0 +1,1795 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Powerfarm 1.3 to 1.4",
+		"description": "Additive migration: Powerfarm Identity (organisations, agents, grants, policies; people and releases extended; principal_id on every entity)",
+		"author": "Powerfarm"
+	},
+	"collections": [
+		{
+			"slug": "releases",
+			"label": "Releases",
+			"labelSingular": "Release",
+			"group": "Engineering",
+			"sortOrder": 15,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "A release is drafted by CI and approved by publishing: by someone holding release.production who is not its author. Only an approved release can be deployed.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Version",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "released_at",
+					"label": "Released",
+					"type": "datetime"
+				},
+				{
+					"slug": "source_revision",
+					"label": "Source revision",
+					"type": "string"
+				},
+				{
+					"slug": "repository",
+					"label": "Repository",
+					"type": "string"
+				},
+				{
+					"slug": "artifact_digest",
+					"label": "Artifact digest (sha256:…)",
+					"type": "string"
+				},
+				{
+					"slug": "environment",
+					"label": "Environment",
+					"type": "select",
+					"validation": {
+						"options": [
+							"production",
+							"staging"
+						]
+					}
+				},
+				{
+					"slug": "test_summary",
+					"label": "Tests",
+					"type": "text"
+				},
+				{
+					"slug": "author_principal",
+					"label": "Author (agents:AG-… or people:PE-…)",
+					"type": "string"
+				},
+				{
+					"slug": "deployed_at",
+					"label": "Deployed",
+					"type": "datetime"
+				},
+				{
+					"slug": "deployed_version",
+					"label": "Deployed version reported",
+					"type": "string"
+				},
+				{
+					"slug": "origin",
+					"label": "Origin (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "emdash_revision",
+					"label": "EmDash revision",
+					"type": "string"
+				},
+				{
+					"slug": "notes",
+					"label": "Notes",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "software",
+					"label": "Releases",
+					"type": "reference",
+					"validation": {
+						"relation": "releases_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "tests",
+					"label": "Tests passed",
+					"type": "reference",
+					"validation": {
+						"relation": "releases_tests",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "clients",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"client_kind"
+				]
+			},
+			"label": "Clients",
+			"labelSingular": "Client",
+			"group": "Entities",
+			"sortOrder": 40,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Organisations and people Powerfarm serves. Register in Powerfarm → Register; publishing is approval. Activation needs its controls met.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Client code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_clients",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "client_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"organization",
+							"individual"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "legal_name",
+					"label": "Legal name",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "country",
+					"label": "Country",
+					"type": "string"
+				},
+				{
+					"slug": "website",
+					"label": "Website",
+					"type": "url"
+				},
+				{
+					"slug": "products",
+					"label": "Products",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Sponsored projects",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "contracts",
+					"label": "Contracts",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "products",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"product_kind"
+				]
+			},
+			"label": "Products",
+			"labelSingular": "Product",
+			"group": "Entities",
+			"sortOrder": 41,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Product code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_products",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "product_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"offering",
+							"internal",
+							"platform"
+						]
+					}
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "services",
+					"label": "Uses services",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "clients",
+					"label": "Clients",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "services",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"service_kind"
+				]
+			},
+			"label": "Services",
+			"labelSingular": "Service",
+			"group": "Entities",
+			"sortOrder": 42,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "The canonical service catalogue. Register a service once; projects, products and contracts reference it. Deployments are service instances.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Service code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_services",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"application",
+							"data",
+							"compute",
+							"storage",
+							"network",
+							"identity",
+							"messaging",
+							"observability",
+							"other"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "support_hours",
+					"label": "Support hours",
+					"type": "string"
+				},
+				{
+					"slug": "software",
+					"label": "Implemented by",
+					"type": "reference",
+					"validation": {
+						"relation": "services_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "instances",
+					"label": "Instances",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Used by products",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "service_instances",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"environment",
+					"classification"
+				]
+			},
+			"label": "Service instances",
+			"labelSingular": "Service instance",
+			"group": "Entities",
+			"sortOrder": 43,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "One concrete deployment of a catalogue service. Credentials are never stored here: record where they live in Secret references.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Instance code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_service_instances",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service",
+					"label": "Service",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "child",
+						"multiple": false
+					},
+					"required": true
+				},
+				{
+					"slug": "environment",
+					"label": "Environment",
+					"type": "select",
+					"validation": {
+						"options": [
+							"production",
+							"staging",
+							"development",
+							"test"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "region",
+					"label": "Region or site",
+					"type": "string"
+				},
+				{
+					"slug": "endpoint",
+					"label": "Endpoint",
+					"type": "string"
+				},
+				{
+					"slug": "secret_refs",
+					"label": "Secret references",
+					"type": "json",
+					"widget": "powerfarm:secret-refs"
+				},
+				{
+					"slug": "hosts",
+					"label": "Runs on",
+					"type": "reference",
+					"validation": {
+						"relation": "service_instances_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_service_instances",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "contracts",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"contract_kind"
+				]
+			},
+			"dateField": "end_date",
+			"label": "Contracts",
+			"labelSingular": "Contract",
+			"group": "Entities",
+			"sortOrder": 44,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Agreement records. Confidential by default. Signing is a person's attestation with the signed copy attached; nothing signs automatically.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Contract code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "confidential"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "contract_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"msa",
+							"sow",
+							"sla",
+							"nda",
+							"license",
+							"dpa",
+							"other"
+						]
+					}
+				},
+				{
+					"slug": "effective_date",
+					"label": "Effective",
+					"type": "datetime"
+				},
+				{
+					"slug": "end_date",
+					"label": "Ends",
+					"type": "datetime"
+				},
+				{
+					"slug": "renewal_date",
+					"label": "Renewal or notice date",
+					"type": "datetime"
+				},
+				{
+					"slug": "notice_days",
+					"label": "Notice period (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "document",
+					"label": "Document",
+					"type": "file"
+				},
+				{
+					"slug": "client",
+					"label": "Client",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Covers products",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "services",
+					"label": "Covers services",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "people",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"relationship",
+					"role_title"
+				]
+			},
+			"label": "People",
+			"labelSingular": "Person",
+			"group": "Identity",
+			"sortOrder": 30,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "One canonical record per person. Lifecycle: intake = invited, active, suspended, retired = departed. Sign-in identities (EmDash user, OIDC subject, Managed Apple Account, Git) are Identifiers; e-mail and phone are contact details only.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Person code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Organisation",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_people",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "relationship",
+					"label": "Relationship",
+					"type": "select",
+					"validation": {
+						"options": [
+							"founder",
+							"employee",
+							"contractor",
+							"advisor",
+							"external"
+						]
+					},
+					"indexed": true
+				},
+				{
+					"slug": "role_title",
+					"label": "Role",
+					"type": "string"
+				},
+				{
+					"slug": "contact_email",
+					"label": "Contact e-mail (not an identity)",
+					"type": "string"
+				},
+				{
+					"slug": "contact_phone",
+					"label": "Contact phone (not an identity)",
+					"type": "string"
+				},
+				{
+					"slug": "access_groups",
+					"label": "Access groups (coarse, sent to Cloudflare Access)",
+					"type": "json"
+				},
+				{
+					"slug": "assets",
+					"label": "Responsible for",
+					"type": "reference",
+					"validation": {
+						"relation": "people_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Responsible for projects",
+					"type": "reference",
+					"validation": {
+						"relation": "people_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "agents",
+					"label": "Responsible for agents",
+					"type": "reference",
+					"validation": {
+						"relation": "people_agents",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "organizations",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"legal_name"
+				]
+			},
+			"label": "Organisations",
+			"labelSingular": "Organisation",
+			"group": "Identity",
+			"sortOrder": 29,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Powerfarm itself (OR-0001) and the organisations it deals with as institutions. Holds legal identity and the institutional accounts that must never depend on one person.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Organisation code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_organizations",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "legal_name",
+					"label": "Legal name",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "jurisdiction",
+					"label": "Jurisdiction",
+					"type": "string"
+				},
+				{
+					"slug": "institutional_accounts",
+					"label": "Institutional accounts (Cloudflare, Apple Business Manager, MDM push owner, developer team, repositories)",
+					"type": "json"
+				},
+				{
+					"slug": "people",
+					"label": "People",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_people",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "services",
+					"label": "Owns services",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "agents",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"agent_kind"
+				]
+			},
+			"label": "Agents",
+			"labelSingular": "Agent",
+			"group": "Identity",
+			"sortOrder": 31,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Non-human principals: AI agents, CI runners and release services, each a separate identity with a responsible person. Never signs in with a human method.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Agent code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Responsible person",
+					"type": "reference",
+					"validation": {
+						"relation": "people_agents",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "agent_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"ai_agent",
+							"ci_runner",
+							"release_service",
+							"scheduled_job",
+							"service_account"
+						]
+					},
+					"required": true,
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "grants",
+			"admin": {
+				"listColumns": [
+					"principal",
+					"capability",
+					"scope",
+					"valid_until"
+				]
+			},
+			"dateField": "valid_until",
+			"label": "Grants",
+			"labelSingular": "Grant",
+			"group": "Identity",
+			"sortOrder": 32,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Explicit authority. Publishing a grant (by someone holding authority.grant, never to themselves) makes it effective; unpublishing or expiry revokes it.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Grant code",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "principal",
+					"label": "Principal (people:PE-0001 or agents:AG-0001)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "capability",
+					"label": "Capability",
+					"type": "select",
+					"validation": {
+						"options": [
+							"authority.grant",
+							"identity.admin",
+							"idp.keys",
+							"idp.config",
+							"policy.publish",
+							"approve.destructive",
+							"approve.profile",
+							"mdm.command",
+							"release.production"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "scope",
+					"label": "Scope (* or collection or collection:KEY)",
+					"type": "string",
+					"required": true,
+					"defaultValue": "*"
+				},
+				{
+					"slug": "delegated_by",
+					"label": "Delegated by (people:PE-…; required for agents)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "task",
+					"label": "Task or reason",
+					"type": "text",
+					"required": true
+				},
+				{
+					"slug": "valid_from",
+					"label": "Valid from",
+					"type": "datetime"
+				},
+				{
+					"slug": "valid_until",
+					"label": "Valid until",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "policy",
+					"label": "Granted under policy (code)",
+					"type": "string",
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "policies",
+			"admin": {
+				"listColumns": [
+					"code",
+					"policy_state",
+					"owner_principal",
+					"review_date"
+				]
+			},
+			"dateField": "review_date",
+			"label": "Policies",
+			"labelSingular": "Policy",
+			"group": "Identity",
+			"sortOrder": 33,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Versioned institutional rules. Each published revision is sealed. A policy is 'enforced' only when the mechanism that applies it is running and verified.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Policy code",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "owner_principal",
+					"label": "Owner (people:PE-…)",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "scope",
+					"label": "Scope and affected resources",
+					"type": "text",
+					"required": true
+				},
+				{
+					"slug": "body",
+					"label": "Rule",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "effective_date",
+					"label": "Effective from",
+					"type": "datetime"
+				},
+				{
+					"slug": "review_date",
+					"label": "Review by",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "supersedes",
+					"label": "Supersedes (policy code)",
+					"type": "string"
+				},
+				{
+					"slug": "policy_state",
+					"label": "Enforcement",
+					"type": "select",
+					"validation": {
+						"options": [
+							"documented",
+							"enforced"
+						]
+					},
+					"required": true,
+					"defaultValue": "documented"
+				},
+				{
+					"slug": "enforced_by",
+					"label": "Enforced by (mechanism, and how it was verified)",
+					"type": "text"
+				}
+			]
+		}
+	],
+	"relations": [
+		{
+			"slug": "organizations_people",
+			"parentCollection": "organizations",
+			"childCollection": "people",
+			"parentLabel": "Organisation",
+			"childLabel": "People"
+		},
+		{
+			"slug": "organizations_services",
+			"parentCollection": "organizations",
+			"childCollection": "services",
+			"parentLabel": "Owned by",
+			"childLabel": "Owns services"
+		},
+		{
+			"slug": "people_organizations",
+			"parentCollection": "people",
+			"childCollection": "organizations",
+			"parentLabel": "Owner",
+			"childLabel": "Owns organisations"
+		},
+		{
+			"slug": "people_agents",
+			"parentCollection": "people",
+			"childCollection": "agents",
+			"parentLabel": "Responsible person",
+			"childLabel": "Responsible for agents"
+		}
+	]
+}

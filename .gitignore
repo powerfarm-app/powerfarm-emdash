@@ -1,0 +1,29 @@
+# Dependencies and builds
+node_modules/
+dist/
+.astro/
+.wrangler/
+.emdash/
+worker-configuration.d.ts
+
+# EmDash, fetched at the pin by scripts/setup.sh (never committed)
+.upstream/
+
+# Secrets and local data: never in the repository
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+data/
+*.db
+*.db-*
+*.sqlite
+*.p12
+*.pem
+*.key
+*.mobileconfig.signed
+
+# OS
+.DS_Store

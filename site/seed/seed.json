@@ -1,0 +1,5381 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Powerfarm",
+		"description": "Powerfarm institutional platform on EmDash (content model 1.2)",
+		"author": "Powerfarm"
+	},
+	"settings": {
+		"title": "Powerfarm",
+		"tagline": "Institutional operating platform",
+		"timezone": "Europe/Lisbon"
+	},
+	"collections": [
+		{
+			"slug": "missions",
+			"label": "Missions",
+			"labelSingular": "Mission",
+			"group": "Powerfarm",
+			"sortOrder": 1,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Mission code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "mission_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"planned",
+							"active",
+							"complete",
+							"suspended"
+						]
+					}
+				},
+				{
+					"slug": "objective",
+					"label": "Objective",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "acceptance",
+					"label": "Acceptance criteria",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "body",
+					"label": "Plan",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "assets",
+					"label": "Assets in scope",
+					"type": "reference",
+					"validation": {
+						"relation": "missions_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "procedures",
+					"label": "Procedures",
+					"type": "reference",
+					"validation": {
+						"relation": "missions_procedures",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Projects",
+					"type": "reference",
+					"validation": {
+						"relation": "missions_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "assets",
+			"label": "Assets",
+			"labelSingular": "Asset",
+			"group": "Powerfarm",
+			"sortOrder": 2,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Devices. Status (identified, verified, trusted…) is derived by Powerfarm from jobs and evidence and cannot be edited.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "asset_tag",
+					"label": "Asset tag",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "device_class",
+					"label": "Device class",
+					"type": "select",
+					"validation": {
+						"options": [
+							"mac_apple_silicon",
+							"mac_intel",
+							"iphone",
+							"ipad"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "role",
+					"label": "Role",
+					"type": "select",
+					"validation": {
+						"options": [
+							"comms_terminal",
+							"trusted_host",
+							"fleet"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "model",
+					"label": "Model",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "model_year",
+					"label": "Model year",
+					"type": "string"
+				},
+				{
+					"slug": "chip",
+					"label": "Chip",
+					"type": "select",
+					"validation": {
+						"options": [
+							"apple_silicon",
+							"intel",
+							"a_series"
+						]
+					}
+				},
+				{
+					"slug": "color",
+					"label": "Colour",
+					"type": "string"
+				},
+				{
+					"slug": "os_at_intake",
+					"label": "OS at intake (as reported)",
+					"type": "string"
+				},
+				{
+					"slug": "os_policy",
+					"label": "OS acceptance policy",
+					"type": "string"
+				},
+				{
+					"slug": "serial_number",
+					"label": "Serial number (from verified inventory)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "ecid",
+					"label": "ECID (from verified inventory)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "notes",
+					"label": "Notes",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "software",
+					"label": "Installed software",
+					"type": "reference",
+					"validation": {
+						"relation": "assets_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "custodians",
+					"label": "Custodians",
+					"type": "reference",
+					"validation": {
+						"relation": "people_assets",
+						"relationSide": "child",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "missions",
+					"label": "Missions",
+					"type": "reference",
+					"validation": {
+						"relation": "missions_assets",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "procedures",
+			"label": "Procedures",
+			"labelSingular": "Procedure",
+			"group": "Powerfarm",
+			"sortOrder": 3,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Procedure code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "operation",
+					"label": "Operation",
+					"type": "select",
+					"validation": {
+						"options": [
+							"none",
+							"inventory",
+							"verify",
+							"backup",
+							"restore",
+							"install_profile",
+							"mac_inventory_manual",
+							"mac_recovery_reinstall",
+							"mac_dfu_revive",
+							"mac_dfu_restore",
+							"mac_verify_manual",
+							"backup_manual",
+							"security_baseline"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "device_classes",
+					"label": "Device classes",
+					"type": "multiSelect",
+					"validation": {
+						"options": [
+							"mac_apple_silicon",
+							"mac_intel",
+							"iphone",
+							"ipad"
+						]
+					}
+				},
+				{
+					"slug": "preconditions",
+					"label": "Preconditions",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "required_tools",
+					"label": "Required tools",
+					"type": "text"
+				},
+				{
+					"slug": "physical_steps",
+					"label": "Operator actions",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "expected_results",
+					"label": "Expected results",
+					"type": "text"
+				},
+				{
+					"slug": "required_evidence",
+					"label": "Required evidence",
+					"type": "multiSelect",
+					"validation": {
+						"options": [
+							"inventory_report",
+							"verification_report",
+							"backup_manifest",
+							"restore_log",
+							"install_log",
+							"log",
+							"attestation",
+							"account_security",
+							"activation_lock",
+							"management_enrollment",
+							"setup_review",
+							"host_bootstrap",
+							"trust_signoff"
+						]
+					}
+				},
+				{
+					"slug": "failure_instructions",
+					"label": "If it fails",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "steps",
+					"label": "Procedure",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "procedure_version",
+					"label": "Version",
+					"type": "string"
+				},
+				{
+					"slug": "software",
+					"label": "Uses software",
+					"type": "reference",
+					"validation": {
+						"relation": "procedures_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "recovery_operations",
+			"label": "Recovery operations",
+			"labelSingular": "Recovery operation",
+			"group": "Powerfarm",
+			"sortOrder": 4,
+			"description": "One proposed operation on one device. Publishing it is the approval.",
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "op_code",
+					"label": "Operation code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "asset_tag",
+					"label": "Asset tag",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "procedure_code",
+					"label": "Procedure code",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "mission_code",
+					"label": "Mission code",
+					"type": "string",
+					"required": true,
+					"indexed": true,
+					"defaultValue": "M001"
+				},
+				{
+					"slug": "operation",
+					"label": "Operation",
+					"type": "select",
+					"validation": {
+						"options": [
+							"none",
+							"inventory",
+							"verify",
+							"backup",
+							"restore",
+							"install_profile",
+							"mac_inventory_manual",
+							"mac_recovery_reinstall",
+							"mac_dfu_revive",
+							"mac_dfu_restore",
+							"mac_verify_manual",
+							"backup_manual",
+							"security_baseline"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "parameters",
+					"label": "Parameters",
+					"type": "json"
+				},
+				{
+					"slug": "dry_run",
+					"label": "Dry run only",
+					"type": "boolean",
+					"defaultValue": true
+				},
+				{
+					"slug": "data_decision",
+					"label": "Data-preservation decision",
+					"type": "select",
+					"validation": {
+						"options": [
+							"backup_verified",
+							"backup_waived",
+							"no_user_data",
+							"blocked"
+						]
+					}
+				},
+				{
+					"slug": "backup_op_code",
+					"label": "Backup operation",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "risk",
+					"label": "Risk",
+					"type": "select",
+					"validation": {
+						"options": [
+							"low",
+							"medium",
+							"high",
+							"destructive"
+						]
+					}
+				},
+				{
+					"slug": "rationale",
+					"label": "Rationale",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "physical_checklist",
+					"label": "Operator checklist",
+					"type": "text"
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				}
+			]
+		},
+		{
+			"slug": "events",
+			"label": "Events",
+			"labelSingular": "Event",
+			"group": "Powerfarm",
+			"sortOrder": 5,
+			"editLocking": false,
+			"dateField": "occurred_at",
+			"description": "Searchable copy of the operational journal. Written only by Powerfarm.",
+			"supports": [
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "event_type",
+					"label": "Event type",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "occurred_at",
+					"label": "Occurred at",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "stream",
+					"label": "Stream",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "sequence",
+					"label": "Sequence",
+					"type": "integer"
+				},
+				{
+					"slug": "journal_id",
+					"label": "Journal id",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "entry_hash",
+					"label": "Entry hash",
+					"type": "string"
+				},
+				{
+					"slug": "asset_tag",
+					"label": "Asset tag",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "op_code",
+					"label": "Operation code",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "job_id",
+					"label": "Job",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "actor",
+					"label": "Actor",
+					"type": "string"
+				},
+				{
+					"slug": "source",
+					"label": "Source",
+					"type": "string"
+				},
+				{
+					"slug": "detail",
+					"label": "Detail",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "payload",
+					"label": "Payload",
+					"type": "json"
+				}
+			]
+		},
+		{
+			"slug": "evidence",
+			"label": "Evidence",
+			"labelSingular": "Evidence item",
+			"group": "Powerfarm",
+			"sortOrder": 6,
+			"dateField": "captured_at",
+			"description": "Append-only. Files are hashed by the server.",
+			"supports": [
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "evidence_type",
+					"label": "Type",
+					"type": "select",
+					"validation": {
+						"options": [
+							"report",
+							"manifest",
+							"log",
+							"photo",
+							"screenshot",
+							"attestation"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "attests",
+					"label": "Attests",
+					"type": "select",
+					"validation": {
+						"options": [
+							"account_security",
+							"activation_lock",
+							"management_enrollment",
+							"setup_review",
+							"host_bootstrap",
+							"trust_signoff",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline_reviewed",
+							"maintenance_plan",
+							"maintenance_review",
+							"contract_signed",
+							"retirement_approved"
+						]
+					}
+				},
+				{
+					"slug": "artifact_kind",
+					"label": "Artifact kind",
+					"type": "string"
+				},
+				{
+					"slug": "asset_tag",
+					"label": "Asset tag",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "op_code",
+					"label": "Operation code",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "identifier",
+					"label": "Identifier attested (namespace:value)",
+					"type": "string"
+				},
+				{
+					"slug": "job_id",
+					"label": "Job",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "op_revision",
+					"label": "Approved revision",
+					"type": "string"
+				},
+				{
+					"slug": "captured_at",
+					"label": "Captured at",
+					"type": "datetime"
+				},
+				{
+					"slug": "file",
+					"label": "File",
+					"type": "file"
+				},
+				{
+					"slug": "media_id",
+					"label": "Media id",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "sha256",
+					"label": "SHA-256",
+					"type": "string"
+				},
+				{
+					"slug": "size_bytes",
+					"label": "Size (bytes)",
+					"type": "integer"
+				},
+				{
+					"slug": "original_filename",
+					"label": "Original filename",
+					"type": "string"
+				},
+				{
+					"slug": "mime_type",
+					"label": "Type",
+					"type": "string"
+				},
+				{
+					"slug": "digest_status",
+					"label": "Digest",
+					"type": "select",
+					"validation": {
+						"options": [
+							"server_verified",
+							"unverified",
+							"none",
+							"mismatch"
+						]
+					}
+				},
+				{
+					"slug": "execution_mode",
+					"label": "Execution mode",
+					"type": "string"
+				},
+				{
+					"slug": "signed_by",
+					"label": "Signed by",
+					"type": "string"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				}
+			]
+		},
+		{
+			"slug": "software",
+			"label": "Software",
+			"labelSingular": "Software",
+			"group": "Engineering",
+			"sortOrder": 10,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "software_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"os",
+							"firmware",
+							"app",
+							"tool",
+							"profile",
+							"component",
+							"service"
+						]
+					}
+				},
+				{
+					"slug": "vendor",
+					"label": "Vendor",
+					"type": "string"
+				},
+				{
+					"slug": "software_version",
+					"label": "Version",
+					"type": "string"
+				},
+				{
+					"slug": "source_revision",
+					"label": "Source revision",
+					"type": "string"
+				},
+				{
+					"slug": "sha256",
+					"label": "SHA-256",
+					"type": "string"
+				},
+				{
+					"slug": "source_url",
+					"label": "Source",
+					"type": "url"
+				},
+				{
+					"slug": "notes",
+					"label": "Notes",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "installed_on",
+					"label": "Installed on",
+					"type": "reference",
+					"validation": {
+						"relation": "assets_software",
+						"relationSide": "child",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "used_by",
+					"label": "Used by procedures",
+					"type": "reference",
+					"validation": {
+						"relation": "procedures_software",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "projects",
+			"label": "Projects",
+			"labelSingular": "Project",
+			"group": "Engineering",
+			"sortOrder": 11,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Project code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "project_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"proposed",
+							"active",
+							"paused",
+							"done"
+						]
+					}
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "body",
+					"label": "Description",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "requirements",
+					"label": "Requirements",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_requirements",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "software",
+					"label": "Builds",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "requirements",
+			"label": "Requirements",
+			"labelSingular": "Requirement",
+			"group": "Engineering",
+			"sortOrder": 12,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Requirement code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "statement",
+					"label": "Statement",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "priority",
+					"label": "Priority",
+					"type": "select",
+					"validation": {
+						"options": [
+							"must",
+							"should",
+							"could"
+						]
+					}
+				},
+				{
+					"slug": "requirement_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"proposed",
+							"accepted",
+							"met",
+							"dropped"
+						]
+					}
+				},
+				{
+					"slug": "decisions",
+					"label": "Decided by",
+					"type": "reference",
+					"validation": {
+						"relation": "requirements_decisions",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "decisions",
+			"label": "Architecture decisions",
+			"labelSingular": "Architecture decision",
+			"group": "Engineering",
+			"sortOrder": 13,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Decision code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "decision_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"proposed",
+							"accepted",
+							"superseded"
+						]
+					}
+				},
+				{
+					"slug": "context",
+					"label": "Context",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "decision",
+					"label": "Decision",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "alternatives",
+					"label": "Alternatives considered",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "consequences",
+					"label": "Consequences",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "software",
+					"label": "Governs",
+					"type": "reference",
+					"validation": {
+						"relation": "decisions_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "tests",
+			"label": "Tests",
+			"labelSingular": "Test",
+			"group": "Engineering",
+			"sortOrder": 14,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Test code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "test_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"unit",
+							"integration",
+							"e2e",
+							"hardware"
+						]
+					}
+				},
+				{
+					"slug": "command",
+					"label": "How to run",
+					"type": "text"
+				},
+				{
+					"slug": "last_result",
+					"label": "Last result",
+					"type": "select",
+					"validation": {
+						"options": [
+							"pass",
+							"fail",
+							"not_run"
+						]
+					}
+				},
+				{
+					"slug": "last_run_at",
+					"label": "Last run",
+					"type": "datetime"
+				},
+				{
+					"slug": "source_revision",
+					"label": "Source revision",
+					"type": "string"
+				},
+				{
+					"slug": "result_summary",
+					"label": "Result",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "requirements",
+					"label": "Verifies",
+					"type": "reference",
+					"validation": {
+						"relation": "tests_requirements",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "software",
+					"label": "Tests",
+					"type": "reference",
+					"validation": {
+						"relation": "tests_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "releases",
+			"label": "Releases",
+			"labelSingular": "Release",
+			"group": "Engineering",
+			"sortOrder": 15,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "A release is drafted by CI and approved by publishing: by someone holding release.production who is not its author. Only an approved release can be deployed.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Version",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "released_at",
+					"label": "Released",
+					"type": "datetime"
+				},
+				{
+					"slug": "source_revision",
+					"label": "Source revision",
+					"type": "string"
+				},
+				{
+					"slug": "repository",
+					"label": "Repository",
+					"type": "string"
+				},
+				{
+					"slug": "artifact_digest",
+					"label": "Artifact digest (sha256:…)",
+					"type": "string"
+				},
+				{
+					"slug": "environment",
+					"label": "Environment",
+					"type": "select",
+					"validation": {
+						"options": [
+							"production",
+							"staging"
+						]
+					}
+				},
+				{
+					"slug": "test_summary",
+					"label": "Tests",
+					"type": "text"
+				},
+				{
+					"slug": "author_principal",
+					"label": "Author (agents:AG-… or people:PE-…)",
+					"type": "string"
+				},
+				{
+					"slug": "deployed_at",
+					"label": "Deployed",
+					"type": "datetime"
+				},
+				{
+					"slug": "deployed_version",
+					"label": "Deployed version reported",
+					"type": "string"
+				},
+				{
+					"slug": "origin",
+					"label": "Origin (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "emdash_revision",
+					"label": "EmDash revision",
+					"type": "string"
+				},
+				{
+					"slug": "notes",
+					"label": "Notes",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "software",
+					"label": "Releases",
+					"type": "reference",
+					"validation": {
+						"relation": "releases_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "tests",
+					"label": "Tests passed",
+					"type": "reference",
+					"validation": {
+						"relation": "releases_tests",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "research",
+			"label": "Research",
+			"labelSingular": "Research item",
+			"group": "Research",
+			"sortOrder": 20,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "body",
+					"label": "Body",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "research_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"idea",
+							"active",
+							"concluded"
+						]
+					}
+				},
+				{
+					"slug": "assets",
+					"label": "Related assets",
+					"type": "reference",
+					"validation": {
+						"relation": "research_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "procedures",
+					"label": "Related procedures",
+					"type": "reference",
+					"validation": {
+						"relation": "research_procedures",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "clients",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"client_kind"
+				]
+			},
+			"label": "Clients",
+			"labelSingular": "Client",
+			"group": "Entities",
+			"sortOrder": 40,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Organisations and people Powerfarm serves. Register in Powerfarm → Register; publishing is approval. Activation needs its controls met.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Client code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_clients",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "client_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"organization",
+							"individual"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "legal_name",
+					"label": "Legal name",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "country",
+					"label": "Country",
+					"type": "string"
+				},
+				{
+					"slug": "website",
+					"label": "Website",
+					"type": "url"
+				},
+				{
+					"slug": "products",
+					"label": "Products",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Sponsored projects",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "contracts",
+					"label": "Contracts",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "products",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"product_kind"
+				]
+			},
+			"label": "Products",
+			"labelSingular": "Product",
+			"group": "Entities",
+			"sortOrder": 41,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Product code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_products",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "product_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"offering",
+							"internal",
+							"platform"
+						]
+					}
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "services",
+					"label": "Uses services",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "clients",
+					"label": "Clients",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_products",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "services",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"service_kind"
+				]
+			},
+			"label": "Services",
+			"labelSingular": "Service",
+			"group": "Entities",
+			"sortOrder": 42,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "The canonical service catalogue. Register a service once; projects, products and contracts reference it. Deployments are service instances.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Service code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_services",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"application",
+							"data",
+							"compute",
+							"storage",
+							"network",
+							"identity",
+							"messaging",
+							"observability",
+							"other"
+						]
+					},
+					"required": true
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "support_hours",
+					"label": "Support hours",
+					"type": "string"
+				},
+				{
+					"slug": "software",
+					"label": "Implemented by",
+					"type": "reference",
+					"validation": {
+						"relation": "services_software",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "instances",
+					"label": "Instances",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Used by products",
+					"type": "reference",
+					"validation": {
+						"relation": "products_services",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "service_instances",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"environment",
+					"classification"
+				]
+			},
+			"label": "Service instances",
+			"labelSingular": "Service instance",
+			"group": "Entities",
+			"sortOrder": 43,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "One concrete deployment of a catalogue service. Credentials are never stored here: record where they live in Secret references.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Instance code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_service_instances",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "service",
+					"label": "Service",
+					"type": "reference",
+					"validation": {
+						"relation": "services_instances",
+						"relationSide": "child",
+						"multiple": false
+					},
+					"required": true
+				},
+				{
+					"slug": "environment",
+					"label": "Environment",
+					"type": "select",
+					"validation": {
+						"options": [
+							"production",
+							"staging",
+							"development",
+							"test"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "region",
+					"label": "Region or site",
+					"type": "string"
+				},
+				{
+					"slug": "endpoint",
+					"label": "Endpoint",
+					"type": "string"
+				},
+				{
+					"slug": "secret_refs",
+					"label": "Secret references",
+					"type": "json",
+					"widget": "powerfarm:secret-refs"
+				},
+				{
+					"slug": "hosts",
+					"label": "Runs on",
+					"type": "reference",
+					"validation": {
+						"relation": "service_instances_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Used by projects",
+					"type": "reference",
+					"validation": {
+						"relation": "projects_service_instances",
+						"relationSide": "child",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "contracts",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"classification",
+					"contract_kind"
+				]
+			},
+			"dateField": "end_date",
+			"label": "Contracts",
+			"labelSingular": "Contract",
+			"group": "Entities",
+			"sortOrder": 44,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Agreement records. Confidential by default. Signing is a person's attestation with the signed copy attached; nothing signs automatically.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Contract code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "confidential"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "contract_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"msa",
+							"sow",
+							"sla",
+							"nda",
+							"license",
+							"dpa",
+							"other"
+						]
+					}
+				},
+				{
+					"slug": "effective_date",
+					"label": "Effective",
+					"type": "datetime"
+				},
+				{
+					"slug": "end_date",
+					"label": "Ends",
+					"type": "datetime"
+				},
+				{
+					"slug": "renewal_date",
+					"label": "Renewal or notice date",
+					"type": "datetime"
+				},
+				{
+					"slug": "notice_days",
+					"label": "Notice period (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "document",
+					"label": "Document",
+					"type": "file"
+				},
+				{
+					"slug": "client",
+					"label": "Client",
+					"type": "reference",
+					"validation": {
+						"relation": "clients_contracts",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "products",
+					"label": "Covers products",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_products",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "services",
+					"label": "Covers services",
+					"type": "reference",
+					"validation": {
+						"relation": "contracts_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "blueprints",
+			"admin": {
+				"listColumns": [
+					"code",
+					"target_collection",
+					"trigger",
+					"blueprint_version"
+				]
+			},
+			"label": "Blueprints",
+			"labelSingular": "Blueprint",
+			"group": "Automation",
+			"sortOrder": 50,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Onboarding templates. Publishing (administrators only) activates that exact revision. Steps use a fixed action catalogue; nothing executes code.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Blueprint code",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "target_collection",
+					"label": "Applies to",
+					"type": "select",
+					"validation": {
+						"options": [
+							"clients",
+							"products",
+							"services",
+							"service_instances",
+							"contracts"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "trigger",
+					"label": "Runs when",
+					"type": "select",
+					"validation": {
+						"options": [
+							"registered",
+							"activated"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "description",
+					"label": "Purpose",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "steps",
+					"label": "Steps",
+					"type": "json",
+					"required": true
+				},
+				{
+					"slug": "failure_procedure",
+					"label": "If a run fails",
+					"type": "text"
+				},
+				{
+					"slug": "blueprint_version",
+					"label": "Version",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"slug": "work_items",
+			"admin": {
+				"listColumns": [
+					"work_kind",
+					"work_status",
+					"subject",
+					"pillar"
+				]
+			},
+			"dateField": "due_at",
+			"label": "Work items",
+			"labelSingular": "Work item",
+			"group": "Automation",
+			"sortOrder": 51,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Tasks, approvals and link requests. Approvals are resolved in Powerfarm → Automation by a person with the required role.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Work item code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "work_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"task",
+							"approval",
+							"link_request",
+							"review",
+							"control",
+							"attention",
+							"note"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "pillar",
+					"label": "Pillar",
+					"type": "select",
+					"validation": {
+						"options": [
+							"identity",
+							"authority",
+							"security",
+							"maintenance",
+							"general"
+						]
+					},
+					"indexed": true
+				},
+				{
+					"slug": "work_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"open",
+							"done",
+							"rejected",
+							"cancelled",
+							"skipped"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "open"
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "due_at",
+					"label": "Due",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "required_role",
+					"label": "Role required to resolve",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "decision",
+					"label": "Decision (approvals: approve / reject; needs attention: retry / done_by_hand / give_up)",
+					"type": "select",
+					"validation": {
+						"options": [
+							"approve",
+							"reject",
+							"retry",
+							"done_by_hand",
+							"give_up"
+						]
+					}
+				},
+				{
+					"slug": "resolution",
+					"label": "Resolution note",
+					"type": "text"
+				},
+				{
+					"slug": "resolved_by",
+					"label": "Resolved by",
+					"type": "string"
+				},
+				{
+					"slug": "resolved_at",
+					"label": "Resolved",
+					"type": "datetime"
+				},
+				{
+					"slug": "control",
+					"label": "Control awaited",
+					"type": "select",
+					"validation": {
+						"options": [
+							"owner_assigned",
+							"identity_recorded",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline",
+							"maintenance_plan",
+							"service_linked",
+							"secrets_referenced",
+							"counterparty_linked",
+							"dates_recorded",
+							"contract_signed",
+							"review_current",
+							"renewal_not_due",
+							"retirement_approved",
+							"no_active_dependants"
+						]
+					}
+				},
+				{
+					"slug": "run_id",
+					"label": "Blueprint run",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "step_id",
+					"label": "Step",
+					"type": "string"
+				},
+				{
+					"slug": "blueprint_code",
+					"label": "Blueprint",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "blueprint_revision",
+					"label": "Blueprint revision",
+					"type": "string"
+				},
+				{
+					"slug": "initiated_by",
+					"label": "Run initiated by",
+					"type": "string"
+				},
+				{
+					"slug": "separate_from_initiator",
+					"label": "Initiator may not resolve",
+					"type": "boolean"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "assignee",
+					"label": "Assignee",
+					"type": "reference",
+					"validation": {
+						"relation": "people_work_items",
+						"relationSide": "child",
+						"multiple": false
+					}
+				}
+			]
+		},
+		{
+			"slug": "identifiers",
+			"admin": {
+				"listColumns": [
+					"subject",
+					"namespace",
+					"source"
+				]
+			},
+			"label": "Identifiers",
+			"labelSingular": "Identifier",
+			"group": "Entities",
+			"sortOrder": 45,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "The identity registry: one entry per identifier, unique across every record type. Maintained by Powerfarm from each record's Identifiers field; administrators transfer one by changing its subject, with a rationale.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Identifier",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "identifier",
+					"label": "namespace:value",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "namespace",
+					"label": "Namespace",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "value",
+					"label": "Value",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "subject",
+					"label": "Identifies (collection:KEY)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "source",
+					"label": "Source",
+					"type": "select",
+					"validation": {
+						"options": [
+							"record",
+							"asset_mirror",
+							"transfer"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "rationale",
+					"label": "Rationale (transfers)",
+					"type": "text"
+				}
+			]
+		},
+		{
+			"slug": "incidents",
+			"admin": {
+				"listColumns": [
+					"severity",
+					"incident_status",
+					"subject",
+					"last_seen"
+				]
+			},
+			"dateField": "last_seen",
+			"label": "Incidents",
+			"labelSingular": "Incident",
+			"group": "Security",
+			"sortOrder": 60,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "What Powerfarm vigilance found on a managed device, or a refused device message. Opened by Powerfarm; people investigate and resolve them here.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "severity",
+					"label": "Severity",
+					"type": "select",
+					"validation": {
+						"options": [
+							"critical",
+							"high",
+							"medium",
+							"low"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "incident_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"open",
+							"investigating",
+							"resolved",
+							"false_positive"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "open"
+				},
+				{
+					"slug": "rule",
+					"label": "Rule",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (assets:TAG)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "udid",
+					"label": "Device UDID",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "detail",
+					"label": "What was found",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "first_seen",
+					"label": "First seen",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "last_seen",
+					"label": "Last seen",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "occurrences",
+					"label": "Occurrences",
+					"type": "number"
+				},
+				{
+					"slug": "resolution",
+					"label": "Resolution (what was done and why)",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "resolved_by",
+					"label": "Resolved by",
+					"type": "string"
+				},
+				{
+					"slug": "resolved_at",
+					"label": "Resolved at",
+					"type": "datetime"
+				},
+				{
+					"slug": "origin",
+					"label": "Origin (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "mdm_profiles",
+			"admin": {
+				"listColumns": [
+					"identifier",
+					"install",
+					"platform"
+				]
+			},
+			"label": "Device profiles",
+			"labelSingular": "Device profile",
+			"group": "Security",
+			"sortOrder": 61,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Configuration profiles for managed devices. Publishing by an administrator approves one: required profiles are then installed by Powerfarm MDM on every matching device; any profile on a device that is not listed here is reported as an incident.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "identifier",
+					"label": "PayloadIdentifier",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "install",
+					"label": "Install",
+					"type": "select",
+					"validation": {
+						"options": [
+							"required",
+							"available",
+							"known_external"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "required"
+				},
+				{
+					"slug": "platform",
+					"label": "Platform",
+					"type": "select",
+					"validation": {
+						"options": [
+							"all",
+							"ios",
+							"macos"
+						]
+					},
+					"required": true,
+					"defaultValue": "all"
+				},
+				{
+					"slug": "mobileconfig",
+					"label": "Profile (.mobileconfig XML)",
+					"type": "text"
+				},
+				{
+					"slug": "description",
+					"label": "Why this profile",
+					"type": "text",
+					"searchable": true
+				}
+			]
+		},
+		{
+			"slug": "exceptions",
+			"admin": {
+				"listColumns": [
+					"subject",
+					"control",
+					"code"
+				]
+			},
+			"dateField": "expires_at",
+			"label": "Security exceptions",
+			"labelSingular": "Security exception",
+			"group": "Automation",
+			"sortOrder": 52,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "A time-limited, approved waiver of one control on one entity. Publishing by an administrator is the risk acceptance.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Exception code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (collection:KEY)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "control",
+					"label": "Control waived",
+					"type": "select",
+					"validation": {
+						"options": [
+							"owner_assigned",
+							"identity_recorded",
+							"identity_verified",
+							"classification_reviewed",
+							"access_reviewed",
+							"security_baseline",
+							"maintenance_plan",
+							"service_linked",
+							"secrets_referenced",
+							"counterparty_linked",
+							"dates_recorded",
+							"contract_signed",
+							"review_current",
+							"renewal_not_due",
+							"retirement_approved",
+							"no_active_dependants"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "rationale",
+					"label": "Rationale and compensating measures",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "scope_note",
+					"label": "Scope",
+					"type": "text"
+				},
+				{
+					"slug": "expires_at",
+					"label": "Expires",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				}
+			]
+		},
+		{
+			"slug": "people",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"relationship",
+					"role_title"
+				]
+			},
+			"label": "People",
+			"labelSingular": "Person",
+			"group": "Identity",
+			"sortOrder": 30,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "One canonical record per person. Lifecycle: intake = invited, active, suspended, retired = departed. Sign-in identities (EmDash user, OIDC subject, Managed Apple Account, Git) are Identifiers; e-mail and phone are contact details only.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Person code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Organisation",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_people",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "relationship",
+					"label": "Relationship",
+					"type": "select",
+					"validation": {
+						"options": [
+							"founder",
+							"employee",
+							"contractor",
+							"advisor",
+							"external"
+						]
+					},
+					"indexed": true
+				},
+				{
+					"slug": "role_title",
+					"label": "Role",
+					"type": "string"
+				},
+				{
+					"slug": "contact_email",
+					"label": "Contact e-mail (not an identity)",
+					"type": "string"
+				},
+				{
+					"slug": "contact_phone",
+					"label": "Contact phone (not an identity)",
+					"type": "string"
+				},
+				{
+					"slug": "access_groups",
+					"label": "Access groups (coarse, sent to Cloudflare Access)",
+					"type": "json"
+				},
+				{
+					"slug": "assets",
+					"label": "Responsible for",
+					"type": "reference",
+					"validation": {
+						"relation": "people_assets",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "projects",
+					"label": "Responsible for projects",
+					"type": "reference",
+					"validation": {
+						"relation": "people_projects",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "agents",
+					"label": "Responsible for agents",
+					"type": "reference",
+					"validation": {
+						"relation": "people_agents",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "organizations",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"legal_name"
+				]
+			},
+			"label": "Organisations",
+			"labelSingular": "Organisation",
+			"group": "Identity",
+			"sortOrder": 29,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Powerfarm itself (OR-0001) and the organisations it deals with as institutions. Holds legal identity and the institutional accounts that must never depend on one person.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Organisation code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Accountable owner",
+					"type": "reference",
+					"validation": {
+						"relation": "people_organizations",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "legal_name",
+					"label": "Legal name",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "jurisdiction",
+					"label": "Jurisdiction",
+					"type": "string"
+				},
+				{
+					"slug": "institutional_accounts",
+					"label": "Institutional accounts (Cloudflare, Apple Business Manager, MDM push owner, developer team, repositories)",
+					"type": "json"
+				},
+				{
+					"slug": "people",
+					"label": "People",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_people",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				},
+				{
+					"slug": "services",
+					"label": "Owns services",
+					"type": "reference",
+					"validation": {
+						"relation": "organizations_services",
+						"relationSide": "parent",
+						"multiple": true
+					}
+				}
+			]
+		},
+		{
+			"slug": "agents",
+			"admin": {
+				"listColumns": [
+					"code",
+					"lifecycle",
+					"agent_kind"
+				]
+			},
+			"label": "Agents",
+			"labelSingular": "Agent",
+			"group": "Identity",
+			"sortOrder": 31,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Non-human principals: AI agents, CI runners and release services, each a separate identity with a responsible person. Never signs in with a human method.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Name",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Agent code",
+					"type": "string",
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "principal_id",
+					"label": "Permanent Powerfarm id (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "lifecycle",
+					"label": "Lifecycle",
+					"type": "select",
+					"validation": {
+						"options": [
+							"intake",
+							"active",
+							"suspended",
+							"retired"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "intake"
+				},
+				{
+					"slug": "classification",
+					"label": "Classification",
+					"type": "select",
+					"validation": {
+						"options": [
+							"public",
+							"internal",
+							"confidential",
+							"restricted"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "internal"
+				},
+				{
+					"slug": "owner",
+					"label": "Responsible person",
+					"type": "reference",
+					"validation": {
+						"relation": "people_agents",
+						"relationSide": "child",
+						"multiple": false
+					}
+				},
+				{
+					"slug": "identifiers",
+					"label": "Identifiers",
+					"type": "json",
+					"widget": "powerfarm:identifiers"
+				},
+				{
+					"slug": "review_cadence_days",
+					"label": "Review every (days)",
+					"type": "integer"
+				},
+				{
+					"slug": "description",
+					"label": "Description",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "merged_into",
+					"label": "Merged into (code of the surviving record)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "merge_rationale",
+					"label": "Why it was merged",
+					"type": "text"
+				},
+				{
+					"slug": "origin",
+					"label": "Created by blueprint step",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "prepared_by_ai",
+					"label": "Prepared by an AI client",
+					"type": "boolean"
+				},
+				{
+					"slug": "agent_kind",
+					"label": "Kind",
+					"type": "select",
+					"validation": {
+						"options": [
+							"ai_agent",
+							"ci_runner",
+							"release_service",
+							"scheduled_job",
+							"service_account"
+						]
+					},
+					"required": true,
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "grants",
+			"admin": {
+				"listColumns": [
+					"principal",
+					"capability",
+					"scope",
+					"valid_until"
+				]
+			},
+			"dateField": "valid_until",
+			"label": "Grants",
+			"labelSingular": "Grant",
+			"group": "Identity",
+			"sortOrder": 32,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Explicit authority. Publishing a grant (by someone holding authority.grant, never to themselves) makes it effective; unpublishing or expiry revokes it.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Grant code",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "principal",
+					"label": "Principal (people:PE-0001 or agents:AG-0001)",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "capability",
+					"label": "Capability",
+					"type": "select",
+					"validation": {
+						"options": [
+							"authority.grant",
+							"identity.admin",
+							"idp.keys",
+							"idp.config",
+							"policy.publish",
+							"approve.destructive",
+							"approve.profile",
+							"mdm.command",
+							"release.production"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "scope",
+					"label": "Scope (* or collection or collection:KEY)",
+					"type": "string",
+					"required": true,
+					"defaultValue": "*"
+				},
+				{
+					"slug": "delegated_by",
+					"label": "Delegated by (people:PE-…; required for agents)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "task",
+					"label": "Task or reason",
+					"type": "text",
+					"required": true
+				},
+				{
+					"slug": "valid_from",
+					"label": "Valid from",
+					"type": "datetime"
+				},
+				{
+					"slug": "valid_until",
+					"label": "Valid until",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "policy",
+					"label": "Granted under policy (code)",
+					"type": "string",
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "policies",
+			"admin": {
+				"listColumns": [
+					"code",
+					"policy_state",
+					"owner_principal",
+					"review_date"
+				]
+			},
+			"dateField": "review_date",
+			"label": "Policies",
+			"labelSingular": "Policy",
+			"group": "Identity",
+			"sortOrder": 33,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Versioned institutional rules. Each published revision is sealed. A policy is 'enforced' only when the mechanism that applies it is running and verified.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "code",
+					"label": "Policy code",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				},
+				{
+					"slug": "owner_principal",
+					"label": "Owner (people:PE-…)",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "scope",
+					"label": "Scope and affected resources",
+					"type": "text",
+					"required": true
+				},
+				{
+					"slug": "body",
+					"label": "Rule",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "effective_date",
+					"label": "Effective from",
+					"type": "datetime"
+				},
+				{
+					"slug": "review_date",
+					"label": "Review by",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "supersedes",
+					"label": "Supersedes (policy code)",
+					"type": "string"
+				},
+				{
+					"slug": "policy_state",
+					"label": "Enforcement",
+					"type": "select",
+					"validation": {
+						"options": [
+							"documented",
+							"enforced"
+						]
+					},
+					"required": true,
+					"defaultValue": "documented"
+				},
+				{
+					"slug": "enforced_by",
+					"label": "Enforced by (mechanism, and how it was verified)",
+					"type": "text"
+				}
+			]
+		}
+	],
+	"relations": [
+		{
+			"slug": "missions_assets",
+			"parentCollection": "missions",
+			"childCollection": "assets",
+			"parentLabel": "Missions",
+			"childLabel": "Assets in scope"
+		},
+		{
+			"slug": "missions_procedures",
+			"parentCollection": "missions",
+			"childCollection": "procedures",
+			"parentLabel": "Missions",
+			"childLabel": "Procedures"
+		},
+		{
+			"slug": "missions_projects",
+			"parentCollection": "missions",
+			"childCollection": "projects",
+			"parentLabel": "Missions",
+			"childLabel": "Projects"
+		},
+		{
+			"slug": "assets_software",
+			"parentCollection": "assets",
+			"childCollection": "software",
+			"parentLabel": "Installed on",
+			"childLabel": "Installed software"
+		},
+		{
+			"slug": "procedures_software",
+			"parentCollection": "procedures",
+			"childCollection": "software",
+			"parentLabel": "Used by procedures",
+			"childLabel": "Uses software"
+		},
+		{
+			"slug": "research_assets",
+			"parentCollection": "research",
+			"childCollection": "assets",
+			"parentLabel": "Research",
+			"childLabel": "Related assets"
+		},
+		{
+			"slug": "research_procedures",
+			"parentCollection": "research",
+			"childCollection": "procedures",
+			"parentLabel": "Research",
+			"childLabel": "Related procedures"
+		},
+		{
+			"slug": "people_assets",
+			"parentCollection": "people",
+			"childCollection": "assets",
+			"parentLabel": "Custodians",
+			"childLabel": "Responsible for"
+		},
+		{
+			"slug": "people_projects",
+			"parentCollection": "people",
+			"childCollection": "projects",
+			"parentLabel": "Responsible",
+			"childLabel": "Responsible for projects"
+		},
+		{
+			"slug": "projects_requirements",
+			"parentCollection": "projects",
+			"childCollection": "requirements",
+			"parentLabel": "Projects",
+			"childLabel": "Requirements"
+		},
+		{
+			"slug": "projects_software",
+			"parentCollection": "projects",
+			"childCollection": "software",
+			"parentLabel": "Built by",
+			"childLabel": "Builds"
+		},
+		{
+			"slug": "requirements_decisions",
+			"parentCollection": "requirements",
+			"childCollection": "decisions",
+			"parentLabel": "Decides",
+			"childLabel": "Decided by"
+		},
+		{
+			"slug": "decisions_software",
+			"parentCollection": "decisions",
+			"childCollection": "software",
+			"parentLabel": "Governed by",
+			"childLabel": "Governs"
+		},
+		{
+			"slug": "tests_requirements",
+			"parentCollection": "tests",
+			"childCollection": "requirements",
+			"parentLabel": "Verified by",
+			"childLabel": "Verifies"
+		},
+		{
+			"slug": "tests_software",
+			"parentCollection": "tests",
+			"childCollection": "software",
+			"parentLabel": "Tested by",
+			"childLabel": "Tests"
+		},
+		{
+			"slug": "releases_software",
+			"parentCollection": "releases",
+			"childCollection": "software",
+			"parentLabel": "Released in",
+			"childLabel": "Releases"
+		},
+		{
+			"slug": "releases_tests",
+			"parentCollection": "releases",
+			"childCollection": "tests",
+			"parentLabel": "Passed in",
+			"childLabel": "Tests passed"
+		},
+		{
+			"slug": "people_clients",
+			"parentCollection": "people",
+			"childCollection": "clients",
+			"parentLabel": "Owner",
+			"childLabel": "Owns clients"
+		},
+		{
+			"slug": "people_products",
+			"parentCollection": "people",
+			"childCollection": "products",
+			"parentLabel": "Owner",
+			"childLabel": "Owns products"
+		},
+		{
+			"slug": "people_services",
+			"parentCollection": "people",
+			"childCollection": "services",
+			"parentLabel": "Owner",
+			"childLabel": "Owns services"
+		},
+		{
+			"slug": "people_service_instances",
+			"parentCollection": "people",
+			"childCollection": "service_instances",
+			"parentLabel": "Owner",
+			"childLabel": "Owns service instances"
+		},
+		{
+			"slug": "people_contracts",
+			"parentCollection": "people",
+			"childCollection": "contracts",
+			"parentLabel": "Owner",
+			"childLabel": "Owns contracts"
+		},
+		{
+			"slug": "people_work_items",
+			"parentCollection": "people",
+			"childCollection": "work_items",
+			"parentLabel": "Assignee",
+			"childLabel": "Assigned work"
+		},
+		{
+			"slug": "clients_products",
+			"parentCollection": "clients",
+			"childCollection": "products",
+			"parentLabel": "Clients",
+			"childLabel": "Products"
+		},
+		{
+			"slug": "clients_projects",
+			"parentCollection": "clients",
+			"childCollection": "projects",
+			"parentLabel": "Sponsored by",
+			"childLabel": "Sponsored projects"
+		},
+		{
+			"slug": "clients_contracts",
+			"parentCollection": "clients",
+			"childCollection": "contracts",
+			"parentLabel": "Client",
+			"childLabel": "Contracts"
+		},
+		{
+			"slug": "products_services",
+			"parentCollection": "products",
+			"childCollection": "services",
+			"parentLabel": "Used by products",
+			"childLabel": "Uses services"
+		},
+		{
+			"slug": "services_software",
+			"parentCollection": "services",
+			"childCollection": "software",
+			"parentLabel": "Implements",
+			"childLabel": "Implemented by"
+		},
+		{
+			"slug": "services_instances",
+			"parentCollection": "services",
+			"childCollection": "service_instances",
+			"parentLabel": "Service",
+			"childLabel": "Instances"
+		},
+		{
+			"slug": "service_instances_assets",
+			"parentCollection": "service_instances",
+			"childCollection": "assets",
+			"parentLabel": "Hosts instances",
+			"childLabel": "Runs on"
+		},
+		{
+			"slug": "projects_services",
+			"parentCollection": "projects",
+			"childCollection": "services",
+			"parentLabel": "Used by projects",
+			"childLabel": "Uses services"
+		},
+		{
+			"slug": "projects_service_instances",
+			"parentCollection": "projects",
+			"childCollection": "service_instances",
+			"parentLabel": "Used by projects",
+			"childLabel": "Uses instances"
+		},
+		{
+			"slug": "contracts_products",
+			"parentCollection": "contracts",
+			"childCollection": "products",
+			"parentLabel": "Covered by contracts",
+			"childLabel": "Covers products"
+		},
+		{
+			"slug": "contracts_services",
+			"parentCollection": "contracts",
+			"childCollection": "services",
+			"parentLabel": "Covered by contracts",
+			"childLabel": "Covers services"
+		},
+		{
+			"slug": "organizations_people",
+			"parentCollection": "organizations",
+			"childCollection": "people",
+			"parentLabel": "Organisation",
+			"childLabel": "People"
+		},
+		{
+			"slug": "organizations_services",
+			"parentCollection": "organizations",
+			"childCollection": "services",
+			"parentLabel": "Owned by",
+			"childLabel": "Owns services"
+		},
+		{
+			"slug": "people_organizations",
+			"parentCollection": "people",
+			"childCollection": "organizations",
+			"parentLabel": "Owner",
+			"childLabel": "Owns organisations"
+		},
+		{
+			"slug": "people_agents",
+			"parentCollection": "people",
+			"childCollection": "agents",
+			"parentLabel": "Responsible person",
+			"childLabel": "Responsible for agents"
+		}
+	],
+	"content": {
+		"software": [
+			{
+				"id": "sw-apple-configurator",
+				"slug": "apple-configurator",
+				"status": "published",
+				"data": {
+					"title": "Apple Configurator (cfgutil)",
+					"software_kind": "tool",
+					"vendor": "Apple",
+					"notes": "Installed on LAB 512 (macOS). The Apple Hardware Bridge uses only operations validated on that host."
+				}
+			},
+			{
+				"id": "sw-emdash",
+				"slug": "emdash",
+				"status": "published",
+				"data": {
+					"title": "EmDash CMS",
+					"software_kind": "service",
+					"vendor": "EmDash",
+					"software_version": "1.4.0",
+					"source_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"source_url": "https://github.com/emdash-cms/emdash"
+				}
+			},
+			{
+				"id": "sw-powerfarm-plugin",
+				"slug": "powerfarm-plugin",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash plugin",
+					"software_kind": "component",
+					"vendor": "Powerfarm",
+					"software_version": "1.4.0"
+				}
+			},
+			{
+				"id": "sw-bridge",
+				"slug": "apple-hardware-bridge",
+				"status": "published",
+				"data": {
+					"title": "Apple Hardware Bridge",
+					"software_kind": "component",
+					"vendor": "Powerfarm",
+					"software_version": "1.1.0"
+				}
+			}
+		],
+		"decisions": [
+			{
+				"id": "adr-1",
+				"slug": "adr-0001",
+				"status": "published",
+				"data": {
+					"title": "EmDash is the Powerfarm platform",
+					"code": "ADR-0001",
+					"decision_status": "accepted",
+					"context": "Recovery, graph and knowledge needed a home.",
+					"decision": "Build everything as EmDash content, relations, plugin storage and a native plugin.",
+					"alternatives": "Separate ARCC application; external graph database.",
+					"consequences": "One installation, one database, one permission model.",
+					"software": [
+						"$ref:sw-emdash",
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-2",
+				"slug": "adr-0002",
+				"status": "published",
+				"data": {
+					"title": "Approval is publication",
+					"code": "ADR-0002",
+					"decision_status": "accepted",
+					"context": "Destructive operations need a human decision bound to an exact version.",
+					"decision": "A recovery operation is approved by publishing it; the job records the published revision.",
+					"alternatives": "Separate approval records.",
+					"consequences": "EmDash revisions are the audit of what was approved; MCP and plugins cannot publish operations.",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-3",
+				"slug": "adr-0003",
+				"status": "published",
+				"data": {
+					"title": "Link fields for operational records",
+					"code": "ADR-0003",
+					"decision_status": "accepted",
+					"context": "Plugin and MCP writes cannot set relation-bound references.",
+					"decision": "Operations, events and evidence link by business key; knowledge relationships use native relations.",
+					"alternatives": "Core patch exposing reference writes to plugins.",
+					"consequences": "Links validated on save; graph shows both kinds.",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-4",
+				"slug": "adr-0004",
+				"status": "published",
+				"data": {
+					"title": "Journal in plugin storage, events as projection",
+					"code": "ADR-0004",
+					"decision_status": "accepted",
+					"context": "Events must not silently disappear.",
+					"decision": "Hash-chained journal in EmDash plugin storage, projected to Events through an outbox.",
+					"alternatives": "Events content as the only record.",
+					"consequences": "Projection failures are retried and visible; audit-degraded blocks trust.",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-5",
+				"slug": "adr-0005",
+				"status": "published",
+				"data": {
+					"title": "Mac DFU stays manual",
+					"code": "ADR-0005",
+					"decision_status": "accepted",
+					"context": "No automated Apple-silicon DFU route has been validated.",
+					"decision": "Mac revive/restore are Finder procedures on a second Mac with macOS 14+; outcomes recorded in EmDash.",
+					"alternatives": "Automating via cfgutil.",
+					"consequences": "The bridge never touches a Mac.",
+					"software": [
+						"$ref:sw-bridge"
+					]
+				}
+			},
+			{
+				"id": "adr-6",
+				"slug": "adr-0006",
+				"status": "published",
+				"data": {
+					"title": "SQLite for Mission 001",
+					"code": "ADR-0006",
+					"decision_status": "accepted",
+					"context": "Single process on LAB 512; EmDash search uses FTS5 on SQLite.",
+					"decision": "Use SQLite.",
+					"alternatives": "PostgreSQL.",
+					"consequences": "Simple backup; revisit if multiple processes are needed. EmDash FTS is SQLite-only.",
+					"software": [
+						"$ref:sw-emdash"
+					]
+				}
+			},
+			{
+				"id": "adr-7",
+				"slug": "adr-0007",
+				"status": "published",
+				"data": {
+					"title": "Private media files",
+					"code": "ADR-0007",
+					"decision_status": "accepted",
+					"context": "EmDash serves /_emdash/api/media/file without authentication.",
+					"decision": "A small, isolated EmDash patch makes media files require authentication when EMDASH_PRIVATE_MEDIA=1.",
+					"alternatives": "Keeping evidence outside EmDash media.",
+					"consequences": "Evidence is in EmDash media and not public.",
+					"software": [
+						"$ref:sw-emdash"
+					]
+				}
+			},
+			{
+				"id": "adr-8",
+				"slug": "adr-0008",
+				"status": "published",
+				"data": {
+					"title": "Reference writes for trusted plugins (patch 0002)",
+					"code": "ADR-0008",
+					"decision_status": "accepted",
+					"context": "Onboarding blueprints must create records linked by native relations; EmDash's plugin content.create drops references.",
+					"decision": "Patch EmDash so in-process plugins may pass references to content.create, validated by EmDash's own create handler in the same transaction; sandboxed plugins are refused. Recovery records keep link fields (ADR-0003).",
+					"alternatives": "Link fields for every new entity; asking a person to link every created record.",
+					"consequences": "Native relations for entities; one more EmDash patch to carry on upgrades.",
+					"software": [
+						"$ref:sw-emdash",
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-9",
+				"slug": "adr-0009",
+				"status": "published",
+				"data": {
+					"title": "Entity status comes from evidence-backed controls",
+					"code": "ADR-0009",
+					"decision_status": "accepted",
+					"context": "A 'secure' or 'active' flag anyone can set proves nothing.",
+					"decision": "Lifecycle changes are publications checked against controls derived from attestations, relations, the identity registry and approved exceptions.",
+					"alternatives": "Editable status fields; checklists outside EmDash.",
+					"consequences": "Activation can be refused with a list of what is missing; nothing activates automatically.",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "adr-10",
+				"slug": "adr-0010",
+				"status": "published",
+				"data": {
+					"title": "Cloudflare holds the state; the lab Macs do the compute",
+					"code": "ADR-0010",
+					"decision_status": "accepted",
+					"context": "The lab is less available than a cloud service, and computing in the cloud costs too much for device work.",
+					"decision": "Run EmDash on Cloudflare (Workers, D1, R2, Cron Trigger) behind Cloudflare Access; keep device work and large files on the lab Macs, which pull jobs and report back through a disk outbox.",
+					"alternatives": "EmDash on a VM in the lab (ADR-0006); compute in the cloud.",
+					"consequences": "Nothing in the lab is reachable from the internet; a lab outage delays jobs but never loses what Powerfarm records. D1 is SQLite, so ADR-0006's search reasoning holds. Two locks: Access, then EmDash's own sign-in.",
+					"software": [
+						"$ref:sw-emdash",
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					]
+				}
+			},
+			{
+				"id": "adr-11",
+				"slug": "adr-0011",
+				"status": "published",
+				"data": {
+					"title": "A thin MDM inside the Powerfarm plugin",
+					"code": "ADR-0011",
+					"decision_status": "accepted",
+					"context": "Six devices were compromised and attacks continue; the fleet needs continuous management, and EmDash already provides routes, storage, content, cron and audit.",
+					"decision": "Implement Apple's MDM protocol in the Powerfarm plugin: device messages verified against a Powerfarm device CA whose key stays on the lab Mac; profiles approved by publishing; findings as incidents; a posture score for Cloudflare Access. The enrolment grants no erase, lock or passcode rights.",
+					"alternatives": "A commercial MDM; a separate MDM server.",
+					"consequences": "One platform; a compromised Powerfarm cannot wipe or lock the fleet; pushes go through the lab Mac, so a lab outage delays commands.",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					]
+				}
+			},
+			{
+				"id": "adr-12",
+				"slug": "adr-0012",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm Identity: principals, grants and federation on EmDash",
+					"code": "ADR-0012",
+					"decision_status": "accepted",
+					"context": "Access to the institution must not depend on any one person's account, and authority must be explicit, scoped and auditable.",
+					"decision": "Every principal (organisation, person, agent, service, device) is EmDash content with a permanent principal_id; sign-in identities are entries in the identifier registry; authority is published grants checked by one authorize() decision on every governed path; Powerfarm is the OIDC provider for Cloudflare Access; published institutional records are sealed.",
+					"alternatives": "A separate identity platform or directory; roles as the only authority; Cloudflare or Apple as the identity root.",
+					"consequences": "One identity model; suspension and revocation take effect at Powerfarm's gates at once; EmDash core administration stays governed by EmDash roles behind a stricter Access application.",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			}
+		],
+		"requirements": [
+			{
+				"id": "req-1",
+				"slug": "req-001",
+				"status": "published",
+				"data": {
+					"title": "Human approval boundary",
+					"code": "REQ-001",
+					"statement": "Only a person can approve a recovery operation; AI clients draft only.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-2"
+					]
+				}
+			},
+			{
+				"id": "req-2",
+				"slug": "req-002",
+				"status": "published",
+				"data": {
+					"title": "Simulations never count",
+					"code": "REQ-002",
+					"statement": "No simulated or dry-run result satisfies a recovery milestone.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-2"
+					]
+				}
+			},
+			{
+				"id": "req-3",
+				"slug": "req-003",
+				"status": "published",
+				"data": {
+					"title": "Fail-closed verification",
+					"code": "REQ-003",
+					"statement": "Identity must match exactly; missing data fails.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-2"
+					]
+				}
+			},
+			{
+				"id": "req-4",
+				"slug": "req-004",
+				"status": "published",
+				"data": {
+					"title": "Durable operational journal",
+					"code": "REQ-004",
+					"statement": "Operational events cannot silently disappear.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-4"
+					]
+				}
+			},
+			{
+				"id": "req-5",
+				"slug": "req-005",
+				"status": "published",
+				"data": {
+					"title": "Media-backed evidence",
+					"code": "REQ-005",
+					"statement": "Evidence is stored in EmDash media with a server-computed digest.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-7"
+					]
+				}
+			},
+			{
+				"id": "req-6",
+				"slug": "req-006",
+				"status": "published",
+				"data": {
+					"title": "Graph access control",
+					"code": "REQ-006",
+					"statement": "The graph never reveals drafts, fields or identifiers a caller may not see.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-1",
+						"$ref:adr-3"
+					]
+				}
+			},
+			{
+				"id": "req-7",
+				"slug": "req-007",
+				"status": "published",
+				"data": {
+					"title": "One active job per device",
+					"code": "REQ-007",
+					"statement": "No two jobs act on one device at once; unknown outcomes block retries.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-2"
+					]
+				}
+			},
+			{
+				"id": "req-8",
+				"slug": "req-008",
+				"status": "published",
+				"data": {
+					"title": "Identifiers unique across types",
+					"code": "REQ-008",
+					"statement": "An identifier (VAT, LEI, domain …) identifies one record of any type; duplicates are refused, also under concurrency.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-9"
+					]
+				}
+			},
+			{
+				"id": "req-9",
+				"slug": "req-009",
+				"status": "published",
+				"data": {
+					"title": "No automatic activation",
+					"code": "REQ-009",
+					"statement": "Creating or registering a record never activates it, grants authority, signs an agreement or provisions anything.",
+					"priority": "must",
+					"requirement_status": "accepted",
+					"decisions": [
+						"$ref:adr-8",
+						"$ref:adr-9"
+					]
+				}
+			}
+		],
+		"tests": [
+			{
+				"id": "test-plugin-unit",
+				"slug": "test-plugin-unit",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm plugin tests",
+					"code": "TEST-PLUGIN",
+					"test_kind": "unit",
+					"command": "cd powerfarm/plugin && pnpm test",
+					"last_result": "not_run",
+					"result_summary": "Recorded at release time; see Releases.",
+					"requirements": [
+						"$ref:req-1",
+						"$ref:req-2",
+						"$ref:req-3",
+						"$ref:req-4",
+						"$ref:req-5",
+						"$ref:req-6",
+						"$ref:req-7",
+						"$ref:req-8",
+						"$ref:req-9"
+					],
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					]
+				}
+			},
+			{
+				"id": "test-bridge-unit",
+				"slug": "test-bridge-unit",
+				"status": "published",
+				"data": {
+					"title": "Bridge tests",
+					"code": "TEST-BRIDGE",
+					"test_kind": "unit",
+					"command": "cd powerfarm/bridge && pnpm test",
+					"last_result": "not_run",
+					"software": [
+						"$ref:sw-bridge"
+					]
+				}
+			},
+			{
+				"id": "test-integration",
+				"slug": "test-integration",
+				"status": "published",
+				"data": {
+					"title": "EmDash integration tests",
+					"code": "TEST-INTEGRATION",
+					"test_kind": "integration",
+					"command": "scripts/setup.sh then pnpm test:integration in powerfarm/site",
+					"last_result": "not_run",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-emdash"
+					]
+				}
+			},
+			{
+				"id": "test-hw-ios",
+				"slug": "test-hw-ios",
+				"status": "published",
+				"data": {
+					"title": "Hardware: iPhone operations on LAB 512",
+					"code": "TEST-HW-IOS",
+					"test_kind": "hardware",
+					"command": "powerfarm-bridge doctor --validate",
+					"last_result": "not_run",
+					"software": [
+						"$ref:sw-bridge",
+						"$ref:sw-apple-configurator"
+					]
+				}
+			},
+			{
+				"id": "test-hw-mac",
+				"slug": "test-hw-mac",
+				"status": "published",
+				"data": {
+					"title": "Hardware: Mac Finder procedures",
+					"code": "TEST-HW-MAC",
+					"test_kind": "hardware",
+					"command": "Manual; see docs/ACCEPTANCE.md",
+					"last_result": "not_run"
+				}
+			}
+		],
+		"releases": [
+			{
+				"id": "rel-1-1-0",
+				"slug": "v1-1-0",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform 1.1.0",
+					"code": "1.1.0",
+					"emdash_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"notes": "Mission 001 corrections: simulation semantics, fail-closed verification, journal and outbox, media evidence, graph access control, native admin integration.",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					],
+					"tests": [
+						"$ref:test-plugin-unit",
+						"$ref:test-bridge-unit"
+					]
+				}
+			},
+			{
+				"id": "rel-1-2-0",
+				"slug": "v1-2-0",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform 1.2.0",
+					"code": "1.2.0",
+					"emdash_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"notes": "Entities (clients, products, services, service instances, contracts), identity registry as content, classification and evidence-backed lifecycle controls, onboarding blueprints run as work items. EmDash patch 0002 (plugin reference writes).",
+					"software": [
+						"$ref:sw-powerfarm-plugin"
+					],
+					"tests": [
+						"$ref:test-plugin-unit"
+					]
+				}
+			},
+			{
+				"id": "rel-1-2-2",
+				"slug": "v1-2-2",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform 1.2.2",
+					"code": "1.2.2",
+					"emdash_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"notes": "Deployment on Cloudflare (Workers, D1, R2, Access) with the lab Macs as pull workers; D1-safe reads; bridge outbox for lab outages; lifecycle integrity (active records keep their controls, registered records leave by retirement, merges wait for relinking). ADR-0010.",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					],
+					"tests": [
+						"$ref:test-plugin-unit",
+						"$ref:test-bridge-unit"
+					]
+				}
+			},
+			{
+				"id": "rel-1-3-0",
+				"slug": "v1-3-0",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform 1.3.0",
+					"code": "1.3.0",
+					"emdash_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"notes": "Powerfarm Identity, first part: a thin MDM in the plugin (check-in and commands, device signatures against the Powerfarm device CA, approved profiles, vigilance and incidents, Cloudflare Access posture score, pushes and enrolment through the lab Mac). ADR-0011.",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					],
+					"tests": [
+						"$ref:test-plugin-unit",
+						"$ref:test-bridge-unit"
+					]
+				}
+			},
+			{
+				"id": "rel-1-4-0",
+				"slug": "v1-4-0",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform 1.4.0",
+					"code": "1.4.0",
+					"emdash_revision": "981c78d5d347428e77afd27b7582924607754503",
+					"notes": "Powerfarm Identity: organisations, people and agents as principals with permanent ids; grants and policies; the authorize() boundary; suspension; record seals; Access assertion check and identity/whoami; OIDC provider for Cloudflare Access; release gate; Access log feed. ADR-0012.",
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					],
+					"tests": [
+						"$ref:test-plugin-unit",
+						"$ref:test-bridge-unit"
+					]
+				}
+			}
+		],
+		"projects": [
+			{
+				"id": "proj-platform",
+				"slug": "pf-platform",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm EmDash Platform",
+					"code": "PF-PLATFORM",
+					"project_status": "active",
+					"summary": "EmDash as Powerfarm's institutional platform: graph, Mission 001 recovery, engineering records.",
+					"requirements": [
+						"$ref:req-1",
+						"$ref:req-2",
+						"$ref:req-3",
+						"$ref:req-4",
+						"$ref:req-5",
+						"$ref:req-6",
+						"$ref:req-7",
+						"$ref:req-8",
+						"$ref:req-9"
+					],
+					"software": [
+						"$ref:sw-powerfarm-plugin",
+						"$ref:sw-bridge"
+					]
+				}
+			}
+		],
+		"assets": [
+			{
+				"id": "asset-lab-001",
+				"slug": "lab-001",
+				"status": "published",
+				"data": {
+					"title": "LAB 001",
+					"asset_tag": "LAB-001",
+					"device_class": "mac_intel",
+					"role": "comms_terminal",
+					"model": "MacBook Pro",
+					"chip": "intel",
+					"os_at_intake": "macOS Catalina 10.15.7",
+					"model_year": "2012"
+				}
+			},
+			{
+				"id": "asset-lab-512",
+				"slug": "lab-512",
+				"status": "published",
+				"data": {
+					"title": "LAB 512",
+					"asset_tag": "LAB-512",
+					"device_class": "mac_apple_silicon",
+					"role": "trusted_host",
+					"model": "Mac mini (M1)",
+					"chip": "apple_silicon"
+				}
+			},
+			{
+				"id": "asset-lab-8gb",
+				"slug": "lab-8gb",
+				"status": "published",
+				"data": {
+					"title": "LAB 8GB",
+					"asset_tag": "LAB-8GB",
+					"device_class": "mac_apple_silicon",
+					"role": "fleet",
+					"model": "Mac mini (M1)",
+					"chip": "apple_silicon"
+				}
+			},
+			{
+				"id": "asset-lab-256",
+				"slug": "lab-256",
+				"status": "published",
+				"data": {
+					"title": "LAB 256",
+					"asset_tag": "LAB-256",
+					"device_class": "mac_apple_silicon",
+					"role": "fleet",
+					"model": "Mac mini (M1)",
+					"chip": "apple_silicon"
+				}
+			},
+			{
+				"id": "asset-iphone-13-red",
+				"slug": "iphone-13-red",
+				"status": "published",
+				"data": {
+					"title": "iPhone 13 RED",
+					"asset_tag": "IPHONE-13-RED",
+					"device_class": "iphone",
+					"role": "fleet",
+					"model": "iPhone 13",
+					"chip": "a_series",
+					"color": "Red"
+				}
+			},
+			{
+				"id": "asset-iphone-14-purple",
+				"slug": "iphone-14-purple",
+				"status": "published",
+				"data": {
+					"title": "iPhone 14 PURPLE",
+					"asset_tag": "IPHONE-14-PURPLE",
+					"device_class": "iphone",
+					"role": "fleet",
+					"model": "iPhone 14",
+					"chip": "a_series",
+					"color": "Purple"
+				}
+			},
+			{
+				"id": "asset-iphone-15-black",
+				"slug": "iphone-15-black",
+				"status": "published",
+				"data": {
+					"title": "iPhone 15 BLACK",
+					"asset_tag": "IPHONE-15-BLACK",
+					"device_class": "iphone",
+					"role": "fleet",
+					"model": "iPhone 15",
+					"chip": "a_series",
+					"color": "Black"
+				}
+			}
+		],
+		"procedures": [
+			{
+				"id": "proc-host-bootstrap",
+				"slug": "p-host-bootstrap",
+				"status": "published",
+				"data": {
+					"title": "Trusted host bootstrap (LAB 512)",
+					"code": "P-HOST-BOOTSTRAP",
+					"operation": "mac_recovery_reinstall",
+					"device_classes": [
+						"mac_apple_silicon"
+					],
+					"preconditions": "Done before EmDash exists on LAB 512. Recorded afterwards with recordOnly.",
+					"required_tools": "LAB 512's own macOS Recovery; if DFU is needed, A second, trusted Mac running macOS 14 or later, connected directly with a USB-C data cable that supports data to the target's DFU port. LAB 001 (Catalina, Intel) cannot act as the DFU host, and neither can the Linux VM. Or Apple-authorised service.",
+					"physical_steps": "1. Try macOS Recovery on LAB 512: shut down, hold the power button until 'Loading startup options', choose Options, then erase and reinstall macOS.\n2. Only if that is impossible: DFU revive or restore from the second Mac's Finder.\n3. Set up with a new administrator account and Powerfarm's own Apple Account. Do not migrate data, profiles or apps.",
+					"expected_results": "LAB 512 boots a clean macOS, FileVault on, no unknown profiles, Activation Lock tied to Powerfarm's account.",
+					"required_evidence": [
+						"host_bootstrap",
+						"account_security",
+						"activation_lock",
+						"management_enrollment"
+					],
+					"failure_instructions": "If Recovery and DFU both fail, stop and use Apple-authorised service.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "EmDash cannot vouch for the machine it runs on, so LAB 512 is recovered independently and the method and result are recorded once EmDash is available."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-inventory",
+				"slug": "p-inventory",
+				"status": "published",
+				"data": {
+					"title": "iPhone inventory",
+					"code": "P-INVENTORY",
+					"operation": "inventory",
+					"device_classes": [
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Device connected to the bridge host, unlocked, host trusted.",
+					"required_tools": "Apple Configurator (cfgutil) on the bridge host, validated for inventory.",
+					"physical_steps": "Connect the iPhone with a USB cable. Unlock it and tap Trust when asked.",
+					"expected_results": "Serial number, ECID, model and iOS version reported.",
+					"required_evidence": [
+						"inventory_report"
+					],
+					"failure_instructions": "If the device does not appear, try another cable and port; check it is unlocked.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Read-only. Copy the reported serial number and ECID onto the asset yourself; the platform never writes identity automatically."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1",
+					"software": [
+						"$ref:sw-apple-configurator"
+					]
+				}
+			},
+			{
+				"id": "proc-mac-inventory",
+				"slug": "p-mac-inventory",
+				"status": "published",
+				"data": {
+					"title": "Mac inventory (manual)",
+					"code": "P-MAC-INVENTORY",
+					"operation": "mac_inventory_manual",
+					"device_classes": [
+						"mac_apple_silicon",
+						"mac_intel"
+					],
+					"preconditions": "Mac powered on, or in DFU mode on the DFU host if its ECID is wanted.",
+					"required_tools": "About This Mac / System Information; Apple Configurator on the DFU host for the ECID.",
+					"physical_steps": "Open Apple menu → System Settings → General → About and note the serial number. Optionally read the ECID from Apple Configurator on the DFU host.",
+					"expected_results": "Serial number recorded; ECID recorded if DFU is used.",
+					"required_evidence": [
+						"inventory_report"
+					],
+					"failure_instructions": "If the Mac will not boot, record the serial from the underside or the original packaging and mark the source.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Complete the manual job with the observed values and attach a screenshot or report."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-ios-backup",
+				"slug": "p-ios-backup",
+				"status": "published",
+				"data": {
+					"title": "iPhone backup",
+					"code": "P-IOS-BACKUP",
+					"operation": "backup",
+					"device_classes": [
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Device connected and unlocked. Enough space on the bridge host.",
+					"required_tools": "Apple Configurator (cfgutil), validated for backup.",
+					"physical_steps": "Keep the iPhone unlocked until the backup completes.",
+					"expected_results": "A local backup and its manifest.",
+					"required_evidence": [
+						"backup_manifest"
+					],
+					"failure_instructions": "If the backup fails, decide explicitly whether to waive it before any restore.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Preserve user data selectively. Do not restore settings, profiles or apps from an untrusted installation."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1",
+					"software": [
+						"$ref:sw-apple-configurator"
+					]
+				}
+			},
+			{
+				"id": "proc-backup-manual",
+				"slug": "p-backup-manual",
+				"status": "published",
+				"data": {
+					"title": "Manual data preservation",
+					"code": "P-BACKUP-MANUAL",
+					"operation": "backup_manual",
+					"device_classes": [
+						"mac_apple_silicon",
+						"mac_intel",
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Decide which user files are worth keeping.",
+					"required_tools": "External disk or the trusted host.",
+					"physical_steps": "Copy only user documents you need. Do not copy system settings, profiles, certificates or applications.",
+					"expected_results": "A manifest of what was kept, with hashes.",
+					"required_evidence": [
+						"backup_manifest"
+					],
+					"failure_instructions": "If nothing is needed, record 'no user data' on the restore instead.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Record the manifest as evidence."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-ios-restore",
+				"slug": "p-ios-restore",
+				"status": "published",
+				"data": {
+					"title": "iPhone erase and restore",
+					"code": "P-IOS-RESTORE",
+					"operation": "restore",
+					"device_classes": [
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Data-preservation decision recorded on the operation. Identity confirmed by inventory.",
+					"required_tools": "Apple Configurator (cfgutil), validated for restore.",
+					"physical_steps": "Connect the iPhone. If it does not appear, put it in recovery mode. Type the asset tag at the bridge when asked.",
+					"expected_results": "Device erased with current iOS from Apple; setup assistant shown.",
+					"required_evidence": [
+						"restore_log"
+					],
+					"failure_instructions": "If the restore stops part-way, do not retry. The job becomes needs_inspection; inspect the device and record what you see.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Destructive. One per device at a time."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1",
+					"software": [
+						"$ref:sw-apple-configurator"
+					]
+				}
+			},
+			{
+				"id": "proc-mac-recovery",
+				"slug": "p-mac-recovery",
+				"status": "published",
+				"data": {
+					"title": "Mac erase and reinstall from macOS Recovery",
+					"code": "P-MAC-RECOVERY",
+					"operation": "mac_recovery_reinstall",
+					"device_classes": [
+						"mac_apple_silicon"
+					],
+					"preconditions": "Data-preservation decision recorded. Serial number recorded.",
+					"required_tools": "The Mac's own macOS Recovery and a network connection.",
+					"physical_steps": "Shut down. Hold the power button until 'Loading startup options'. Choose Options, open Disk Utility to erase, then Reinstall macOS.",
+					"expected_results": "Clean macOS at the setup assistant.",
+					"required_evidence": [
+						"attestation"
+					],
+					"failure_instructions": "If Recovery cannot erase or reinstall, use P-MAC-REVIVE, then P-MAC-RESTORE.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Manual. Complete the job afterwards with the outcome and attach evidence."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-mac-revive",
+				"slug": "p-mac-revive",
+				"status": "published",
+				"data": {
+					"title": "Mac DFU revive (Finder)",
+					"code": "P-MAC-REVIVE",
+					"operation": "mac_dfu_revive",
+					"device_classes": [
+						"mac_apple_silicon"
+					],
+					"preconditions": "A second, trusted Mac running macOS 14 or later, connected directly with a USB-C data cable that supports data to the target's DFU port. LAB 001 (Catalina, Intel) cannot act as the DFU host, and neither can the Linux VM.",
+					"required_tools": "Finder on the DFU host.",
+					"physical_steps": "Put the target Mac into DFU mode and connect it to the DFU host. In Finder, select the Mac and choose Revive Mac.",
+					"expected_results": "Firmware and recoveryOS reinstalled; data kept.",
+					"required_evidence": [
+						"attestation"
+					],
+					"failure_instructions": "If revive fails, use P-MAC-RESTORE.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Manual Finder procedure. No automated route has been validated."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-mac-restore",
+				"slug": "p-mac-restore",
+				"status": "published",
+				"data": {
+					"title": "Mac DFU erase and restore (Finder)",
+					"code": "P-MAC-RESTORE",
+					"operation": "mac_dfu_restore",
+					"device_classes": [
+						"mac_apple_silicon"
+					],
+					"preconditions": "A second, trusted Mac running macOS 14 or later, connected directly with a USB-C data cable that supports data to the target's DFU port. LAB 001 (Catalina, Intel) cannot act as the DFU host, and neither can the Linux VM. Data-preservation decision recorded.",
+					"required_tools": "Finder on the DFU host.",
+					"physical_steps": "Put the target Mac into DFU mode and connect it to the DFU host. In Finder, select the Mac, choose Restore Mac and confirm erasure.",
+					"expected_results": "Mac erased; latest firmware and macOS installed.",
+					"required_evidence": [
+						"attestation"
+					],
+					"failure_instructions": "If the restore fails part-way, record it; inspect before trying again.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Manual Finder procedure. Destructive."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-verify",
+				"slug": "p-verify",
+				"status": "published",
+				"data": {
+					"title": "iPhone verification",
+					"code": "P-VERIFY",
+					"operation": "verify",
+					"device_classes": [
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Restore completed. Asset has serial, ECID and an OS policy recorded.",
+					"required_tools": "Apple Configurator (cfgutil), validated for verify.",
+					"physical_steps": "Connect the restored iPhone to the bridge host.",
+					"expected_results": "Serial and ECID match exactly; iOS meets the policy.",
+					"required_evidence": [
+						"verification_report"
+					],
+					"failure_instructions": "Any mismatch blocks the device. Investigate before continuing.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Read-only."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1",
+					"software": [
+						"$ref:sw-apple-configurator"
+					]
+				}
+			},
+			{
+				"id": "proc-mac-verify",
+				"slug": "p-mac-verify",
+				"status": "published",
+				"data": {
+					"title": "Mac verification (manual)",
+					"code": "P-MAC-VERIFY",
+					"operation": "mac_verify_manual",
+					"device_classes": [
+						"mac_apple_silicon",
+						"mac_intel"
+					],
+					"preconditions": "Restore completed. Serial and OS policy recorded.",
+					"required_tools": "About This Mac / System Information.",
+					"physical_steps": "Read the serial number and macOS version and build, and enter them when completing the job.",
+					"expected_results": "Serial matches exactly; macOS meets the policy.",
+					"required_evidence": [
+						"verification_report"
+					],
+					"failure_instructions": "Any mismatch blocks the device.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Attach a screenshot or report."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-account-security",
+				"slug": "p-account-security",
+				"status": "published",
+				"data": {
+					"title": "Account and security baseline",
+					"code": "P-ACCOUNT-SECURITY",
+					"operation": "security_baseline",
+					"device_classes": [
+						"mac_apple_silicon",
+						"mac_intel",
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "Device restored and verified.",
+					"required_tools": "The device and Powerfarm's own Apple Account.",
+					"physical_steps": "Sign in with Powerfarm's Apple Account; turn on two-factor authentication and Find My; confirm Activation Lock belongs to that account; check there is no device-management enrolment or profile you do not recognise; set a passcode or FileVault.",
+					"expected_results": "One attestation each for account security, Activation Lock and management enrolment, recorded after the latest restore.",
+					"required_evidence": [
+						"account_security",
+						"activation_lock",
+						"management_enrollment"
+					],
+					"failure_instructions": "If the device is enrolled in management you do not recognise, stop: do not remove ownership information; contact the organisation that owns the enrolment or Apple.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Record each check as an Evidence attestation."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			},
+			{
+				"id": "proc-inspect",
+				"slug": "p-inspect",
+				"status": "published",
+				"data": {
+					"title": "Inspect after an interrupted operation",
+					"code": "P-INSPECT",
+					"operation": "none",
+					"device_classes": [
+						"mac_apple_silicon",
+						"mac_intel",
+						"iphone",
+						"ipad"
+					],
+					"preconditions": "A job is in needs_inspection.",
+					"required_tools": "The device.",
+					"physical_steps": "Look at the device without starting anything: setup screen, recovery mode, old system, or unresponsive?",
+					"expected_results": "A written finding on the job, then a fresh inventory.",
+					"required_evidence": [],
+					"failure_instructions": "If the device is unresponsive, try recovery mode or DFU only after recording the finding.",
+					"steps": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Guidance only; cannot be approved as an operation."
+								}
+							]
+						}
+					],
+					"procedure_version": "1.1"
+				}
+			}
+		],
+		"missions": [
+			{
+				"id": "mission-001",
+				"slug": "m001",
+				"status": "published",
+				"data": {
+					"title": "Mission 001 — Neutralization and trusted recovery",
+					"code": "M001",
+					"mission_status": "active",
+					"objective": "Establish a trusted recovery path, stop relying on untrusted installations, rebuild LAB 512, LAB 8GB, LAB 256, iPhone 13 RED, iPhone 14 PURPLE and iPhone 15 BLACK, and verify them.",
+					"acceptance": "All six recovery targets are 'trusted': real restore, exact identity verification after it, security attestations after it, intact audit journal, and an administrator's trust sign-off.",
+					"body": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "LAB 001 is the communications terminal and is not a recovery target."
+								}
+							]
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "LAB 512 is recovered first and independently, then hosts EmDash (in an Ubuntu VM) and the Apple Hardware Bridge (on macOS)."
+								}
+							]
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "iPhones are handled by the bridge; Macs by documented manual procedures. Every destructive step is a recovery operation that a person approves by publishing it."
+								}
+							]
+						}
+					],
+					"assets": [
+						"$ref:asset-lab-512",
+						"$ref:asset-lab-8gb",
+						"$ref:asset-lab-256",
+						"$ref:asset-iphone-13-red",
+						"$ref:asset-iphone-14-purple",
+						"$ref:asset-iphone-15-black"
+					],
+					"procedures": [
+						"$ref:proc-host-bootstrap",
+						"$ref:proc-inventory",
+						"$ref:proc-mac-inventory",
+						"$ref:proc-ios-backup",
+						"$ref:proc-backup-manual",
+						"$ref:proc-ios-restore",
+						"$ref:proc-mac-recovery",
+						"$ref:proc-mac-revive",
+						"$ref:proc-mac-restore",
+						"$ref:proc-verify",
+						"$ref:proc-mac-verify",
+						"$ref:proc-account-security",
+						"$ref:proc-inspect"
+					],
+					"projects": [
+						"$ref:proj-platform"
+					]
+				}
+			}
+		],
+		"people": [
+			{
+				"id": "person-director",
+				"slug": "director",
+				"status": "published",
+				"data": {
+					"title": "Powerfarm Director",
+					"role_title": "Institutional authority",
+					"assets": [
+						"$ref:asset-lab-001",
+						"$ref:asset-lab-512",
+						"$ref:asset-lab-8gb",
+						"$ref:asset-lab-256",
+						"$ref:asset-iphone-13-red",
+						"$ref:asset-iphone-14-purple",
+						"$ref:asset-iphone-15-black"
+					],
+					"projects": [
+						"$ref:proj-platform"
+					]
+				}
+			}
+		],
+		"blueprints": [
+			{
+				"id": "bp-client-onboarding",
+				"slug": "bp-client-onboarding",
+				"status": "draft",
+				"data": {
+					"title": "Client onboarding",
+					"code": "BP-CLIENT-ONBOARDING",
+					"target_collection": "clients",
+					"trigger": "registered",
+					"description": "When a client registration is approved: owner, identity, classification and access reviews, product links, a draft agreement for review, a maintenance plan.",
+					"steps": [
+						{
+							"id": "owner",
+							"action": "create_task",
+							"title": "Confirm the accountable owner for {{subject.title}}",
+							"pillar": "authority",
+							"description": "Set the client's Accountable owner in the editor and publish.",
+							"dueInDays": 3,
+							"when": {
+								"reference": "owner",
+								"empty": true
+							}
+						},
+						{
+							"id": "identity",
+							"action": "create_task",
+							"title": "Verify the identity of {{subject.title}}",
+							"pillar": "identity",
+							"assignee": "$subject.owner",
+							"description": "Check each identifier with its issuer. Record an identity_verified attestation (Evidence, subject {{subject.ref}}) naming the identifier; attach the issuer's record if you have it.",
+							"dueInDays": 7
+						},
+						{
+							"id": "classification",
+							"action": "create_task",
+							"title": "Review the classification of {{subject.title}} ({{subject.classification}})",
+							"pillar": "security",
+							"assignee": "$subject.owner",
+							"description": "Confirm the classification fits the information held. Record a classification_reviewed attestation.",
+							"dueInDays": 7
+						},
+						{
+							"id": "access",
+							"action": "create_task",
+							"title": "Review who may access {{subject.title}}'s records",
+							"pillar": "authority",
+							"description": "Confidential and restricted clients need an administrator's access_reviewed attestation before activation.",
+							"dueInDays": 7,
+							"when": {
+								"field": "classification",
+								"in": [
+									"confidential",
+									"restricted"
+								]
+							}
+						},
+						{
+							"id": "links",
+							"action": "request_link",
+							"title": "Link the products and shared services {{subject.title}} uses",
+							"pillar": "general",
+							"description": "Select existing Products on the client and publish. Do not register a second copy of a service that is already in the catalogue.",
+							"when": {
+								"reference": "products",
+								"empty": true
+							}
+						},
+						{
+							"id": "contract",
+							"action": "create_record",
+							"collection": "contracts",
+							"fields": {
+								"title": "Agreement with {{subject.title}}",
+								"contract_kind": "msa"
+							},
+							"references": {
+								"client": [
+									"$subject"
+								],
+								"products": [
+									"$subject.products"
+								],
+								"owner": [
+									"$subject.owner"
+								]
+							}
+						},
+						{
+							"id": "contract_review",
+							"action": "request_approval",
+							"title": "Review the draft agreement for {{subject.title}}",
+							"requiredRole": 50,
+							"description": "Open the draft contract this run created. Approve when its terms are ready to negotiate. Approving does not sign it: signing is a contract_signed attestation with the signed copy.",
+							"dependsOn": [
+								"contract"
+							]
+						},
+						{
+							"id": "maintenance",
+							"action": "create_task",
+							"title": "Set the review cadence for {{subject.title}} and record a maintenance plan",
+							"pillar": "maintenance",
+							"assignee": "$subject.owner",
+							"dueInDays": 14
+						},
+						{
+							"id": "identity_check",
+							"action": "wait_for_control",
+							"control": "identity_verified",
+							"timeoutDays": 30,
+							"dependsOn": [
+								"identity"
+							]
+						},
+						{
+							"id": "done",
+							"action": "record_provenance",
+							"title": "Onboarding work for {{subject.title}} is in place",
+							"dependsOn": [
+								"contract_review",
+								"identity_check"
+							]
+						}
+					],
+					"failure_procedure": "Open Powerfarm → Automation, read the failed step, fix the cause, then mark the step resolved or cancel the run. Never re-register the client to re-run onboarding.",
+					"blueprint_version": "1.0"
+				}
+			}
+		]
+	}
+}

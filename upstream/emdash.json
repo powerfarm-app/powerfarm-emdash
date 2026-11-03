@@ -1,0 +1,8 @@
+{
+	"$comment": "The EmDash Powerfarm runs on. Changed only by a reviewed PR (scripts/upstream-bump.mjs or by hand). docs/UPSTREAM.md explains the policy.",
+	"repository": "https://github.com/emdash-cms/emdash.git",
+	"commit": "981c78d5d347428e77afd27b7582924607754503",
+	"version": "1.4.0",
+	"basedOnTag": "emdash@1.4.0",
+	"note": "main, 64 commits after the emdash@1.4.0 release tag (10beb8c). Future bumps move to release tags only."
+}

@@ -1,0 +1,220 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Powerfarm 1.2 to 1.3",
+		"description": "Additive migration: incidents and device profiles (Powerfarm MDM)",
+		"author": "Powerfarm"
+	},
+	"collections": [
+		{
+			"slug": "incidents",
+			"admin": {
+				"listColumns": [
+					"severity",
+					"incident_status",
+					"subject",
+					"last_seen"
+				]
+			},
+			"dateField": "last_seen",
+			"label": "Incidents",
+			"labelSingular": "Incident",
+			"group": "Security",
+			"sortOrder": 60,
+			"supports": [
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "What Powerfarm vigilance found on a managed device, or a refused device message. Opened by Powerfarm; people investigate and resolve them here.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "severity",
+					"label": "Severity",
+					"type": "select",
+					"validation": {
+						"options": [
+							"critical",
+							"high",
+							"medium",
+							"low"
+						]
+					},
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "incident_status",
+					"label": "Status",
+					"type": "select",
+					"validation": {
+						"options": [
+							"open",
+							"investigating",
+							"resolved",
+							"false_positive"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "open"
+				},
+				{
+					"slug": "rule",
+					"label": "Rule",
+					"type": "string",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "subject",
+					"label": "Subject (assets:TAG)",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "udid",
+					"label": "Device UDID",
+					"type": "string",
+					"indexed": true
+				},
+				{
+					"slug": "detail",
+					"label": "What was found",
+					"type": "text",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "first_seen",
+					"label": "First seen",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "last_seen",
+					"label": "Last seen",
+					"type": "datetime",
+					"required": true,
+					"indexed": true
+				},
+				{
+					"slug": "occurrences",
+					"label": "Occurrences",
+					"type": "number"
+				},
+				{
+					"slug": "resolution",
+					"label": "Resolution (what was done and why)",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "resolved_by",
+					"label": "Resolved by",
+					"type": "string"
+				},
+				{
+					"slug": "resolved_at",
+					"label": "Resolved at",
+					"type": "datetime"
+				},
+				{
+					"slug": "origin",
+					"label": "Origin (set by Powerfarm)",
+					"type": "string",
+					"unique": true,
+					"indexed": true
+				}
+			]
+		},
+		{
+			"slug": "mdm_profiles",
+			"admin": {
+				"listColumns": [
+					"identifier",
+					"install",
+					"platform"
+				]
+			},
+			"label": "Device profiles",
+			"labelSingular": "Device profile",
+			"group": "Security",
+			"sortOrder": 61,
+			"supports": [
+				"drafts",
+				"revisions",
+				"search"
+			],
+			"routable": false,
+			"description": "Configuration profiles for managed devices. Publishing by an administrator approves one: required profiles are then installed by Powerfarm MDM on every matching device; any profile on a device that is not listed here is reported as an incident.",
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "identifier",
+					"label": "PayloadIdentifier",
+					"type": "string",
+					"required": true,
+					"unique": true,
+					"indexed": true,
+					"searchable": true
+				},
+				{
+					"slug": "install",
+					"label": "Install",
+					"type": "select",
+					"validation": {
+						"options": [
+							"required",
+							"available",
+							"known_external"
+						]
+					},
+					"required": true,
+					"indexed": true,
+					"defaultValue": "required"
+				},
+				{
+					"slug": "platform",
+					"label": "Platform",
+					"type": "select",
+					"validation": {
+						"options": [
+							"all",
+							"ios",
+							"macos"
+						]
+					},
+					"required": true,
+					"defaultValue": "all"
+				},
+				{
+					"slug": "mobileconfig",
+					"label": "Profile (.mobileconfig XML)",
+					"type": "text"
+				},
+				{
+					"slug": "description",
+					"label": "Why this profile",
+					"type": "text",
+					"searchable": true
+				}
+			]
+		}
+	]
+}

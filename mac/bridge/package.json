@@ -1,0 +1,21 @@
+{
+	"name": "@powerfarm/apple-hardware-bridge",
+	"version": "1.4.0",
+	"private": true,
+	"description": "Pulls approved Mission 001 jobs from EmDash and runs them with Apple Configurator's cfgutil on the macOS host",
+	"type": "module",
+	"bin": {
+		"powerfarm-bridge": "./bin/powerfarm-bridge.mjs"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"os": [
+		"darwin",
+		"linux"
+	],
+	"scripts": {
+		"test": "node --test test/*.test.mjs"
+	},
+	"license": "MIT"
+}

@@ -1,0 +1,35 @@
+# Powerfarm on EmDash, single internal instance (Mission 001).
+# Install on the Linux VM:
+#   sudo useradd --system --home /var/lib/powerfarm --shell /usr/sbin/nologin powerfarm
+#   sudo install -d -o powerfarm -g powerfarm -m 0700 /var/lib/powerfarm
+#   sudo install -m 0600 -o root -g root site/.env /etc/powerfarm.env
+#   sudo cp deploy/powerfarm.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now powerfarm
+# Adjust WorkingDirectory to your checkout (TARGET/powerfarm/site).
+[Unit]
+Description=Powerfarm (EmDash internal instance)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=powerfarm
+Group=powerfarm
+WorkingDirectory=/opt/emdash/powerfarm/site
+EnvironmentFile=/etc/powerfarm.env
+ExecStart=/usr/bin/node ./dist/server/entry.mjs
+Restart=on-failure
+RestartSec=5
+# Hardening. The process needs only its data directory writable.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/powerfarm
+CapabilityBoundingSet=
+RestrictSUIDSGID=true
+LockPersonality=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+{
+	"emdashUrl": "https://powerfarm.example.com",
+	"accessClientId": "<Cloudflare Access service token client id>.access",
+	"accessSecretFile": "~/.powerfarm/access.secret",
+	"bridgeId": "lab-512-bridge",
+	"secretFile": "~/.powerfarm/bridge.secret",
+	"hostAssetTag": "LAB-512",
+	"cfgutilPath": "/Applications/Apple Configurator.app/Contents/MacOS/cfgutil",
+	"logDir": "~/.powerfarm/logs",
+	"profilesDir": "~/.powerfarm/profiles",
+	"pollSeconds": 20,
+	"mdm": {
+		"topic": "com.apple.mgmt.External.<uuid of your MDM push certificate>",
+		"caDir": "~/.powerfarm/mdm-ca",
+		"pushCertificateFile": "~/.powerfarm/mdm-push.p12",
+		"pushPasswordFile": "~/.powerfarm/mdm-push.password"
+	},
+	"requireLocalConfirmation": true,
+	"validationFile": "~/.powerfarm/validated-operations.json",
+	"operationTimeoutMinutes": {
+		"inventory": 5,
+		"verify": 5,
+		"backup": 180,
+		"restore": 120,
+		"install_profile": 10
+	}
+}

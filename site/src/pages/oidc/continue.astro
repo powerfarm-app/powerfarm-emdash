@@ -1,0 +1,62 @@
+---
+// Finishes a Cloudflare Access sign-in through Powerfarm's OIDC provider.
+//
+// No logic lives here: the page posts the request id to the plugin's private
+// route `oidc/continue` with EmDash's CSRF header (same-origin, session cookie)
+// and follows the answer. Not signed in → EmDash's own sign-in, then back here.
+// Cloudflare Access must Bypass this path (docs/IDENTITY.md).
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="referrer" content="no-referrer" />
+		<title>Signing in — Powerfarm</title>
+	</head>
+	<body>
+		<main>
+			<p id="status">Signing you in…</p>
+		</main>
+		<script is:inline>
+			(async () => {
+				const status = document.getElementById("status");
+				const rid = new URLSearchParams(location.search).get("rid") || "";
+				if (!/^[A-Za-z0-9_-]{16,64}$/.test(rid)) {
+					status.textContent = "This sign-in link is not valid. Start again from the application.";
+					return;
+				}
+				let res;
+				try {
+					res = await fetch("/_emdash/api/plugins/powerfarm/oidc/continue", {
+						method: "POST",
+						credentials: "same-origin",
+						headers: { "content-type": "application/json", "x-emdash-request": "1" },
+						body: JSON.stringify({ rid }),
+					});
+				} catch {
+					status.textContent = "Could not reach Powerfarm. Try again.";
+					return;
+				}
+				if (res.status === 401) {
+					location.replace("/_emdash/admin/login?redirect=" + encodeURIComponent("/oidc/continue?rid=" + rid));
+					return;
+				}
+				const body = await res.json().catch(() => null);
+				const target = body && body.data && body.data.location;
+				if (res.ok && typeof target === "string" && /^https:\/\//.test(target)) {
+					location.replace(target);
+					return;
+				}
+				status.textContent = (body && body.error && body.error.message) || "Sign-in could not be completed.";
+			})();
+		</script>
+		<style>
+			body { font-family: system-ui, -apple-system, sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f6f4; color: #1d1d1b; }
+			@media (prefers-color-scheme: dark) { body { background: #161615; color: #ecece8; } }
+		</style>
+	</body>
+</html>

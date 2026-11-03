@@ -1,0 +1,80 @@
+diff --git a/packages/core/src/astro/middleware/auth.ts b/packages/core/src/astro/middleware/auth.ts
+index b752b12..eb1900f 100644
+--- a/packages/core/src/astro/middleware/auth.ts
++++ b/packages/core/src/astro/middleware/auth.ts
+@@ -21,6 +21,7 @@ import { authenticate as virtualAuthenticate } from "virtual:emdash/auth";
+ import virtualConfig from "virtual:emdash/config";
+ 
+ import { checkPublicCsrf } from "../../api/csrf.js";
++import { isPrivateMediaFileRequest } from "./private-media.js";
+ import { apiError } from "../../api/error.js";
+ import { getPublicOrigin } from "../../api/public-url.js";
+ 
+@@ -175,6 +176,8 @@ const CSRF_EXEMPT_PUBLIC_ROUTES = new Set([
+ ]);
+ 
+ function isPublicEmDashRoute(pathname: string): boolean {
++	// Powerfarm patch 0001: with EMDASH_PRIVATE_MEDIA=1, media files require authentication.
++	if (isPrivateMediaFileRequest(pathname)) return false;
+ 	if (PUBLIC_API_EXACT.has(pathname)) return true;
+ 	if (PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))) return true;
+ 	if (_providerExactRoutes.has(pathname)) return true;
+diff --git a/packages/core/src/astro/middleware/private-media.ts b/packages/core/src/astro/middleware/private-media.ts
+new file mode 100644
+index 0000000..9638942
+--- /dev/null
++++ b/packages/core/src/astro/middleware/private-media.ts
+@@ -0,0 +1,25 @@
++/**
++ * Powerfarm patch 0001 — private media files.
++ *
++ * EmDash serves `/_emdash/api/media/file/<key>` without authentication so that
++ * public sites can show images. An institution that stores operational evidence
++ * in EmDash media needs those files to require a signed-in user (or a token with
++ * `media:read`, which the existing scope table already demands for token calls).
++ *
++ * Set EMDASH_PRIVATE_MEDIA=1 to make the route private. Default behaviour is
++ * unchanged.
++ */
++
++const MEDIA_FILE_PREFIX = "/_emdash/api/media/file/";
++
++export function mediaFilesArePrivate(env: Record<string, string | undefined> = readEnv()): boolean {
++	return env.EMDASH_PRIVATE_MEDIA === "1" || env.EMDASH_PRIVATE_MEDIA === "true";
++}
++
++export function isPrivateMediaFileRequest(pathname: string, env?: Record<string, string | undefined>): boolean {
++	return pathname.startsWith(MEDIA_FILE_PREFIX) && mediaFilesArePrivate(env);
++}
++
++function readEnv(): Record<string, string | undefined> {
++	return typeof process !== "undefined" && process.env ? process.env : {};
++}
+diff --git a/packages/core/tests/unit/middleware/private-media.test.ts b/packages/core/tests/unit/middleware/private-media.test.ts
+new file mode 100644
+index 0000000..7c90fae
+--- /dev/null
++++ b/packages/core/tests/unit/middleware/private-media.test.ts
+@@ -0,0 +1,22 @@
++import { describe, expect, it } from "vitest";
++
++import { isPrivateMediaFileRequest, mediaFilesArePrivate } from "../../../src/astro/middleware/private-media.js";
++
++describe("private media files (Powerfarm patch 0001)", () => {
++	it("is off by default", () => {
++		expect(mediaFilesArePrivate({})).toBe(false);
++		expect(isPrivateMediaFileRequest("/_emdash/api/media/file/abc.png", {})).toBe(false);
++	});
++
++	it("makes only the media file route private when enabled", () => {
++		const env = { EMDASH_PRIVATE_MEDIA: "1" };
++		expect(isPrivateMediaFileRequest("/_emdash/api/media/file/abc.png", env)).toBe(true);
++		expect(isPrivateMediaFileRequest("/_emdash/api/media/upload-url", env)).toBe(false);
++		expect(isPrivateMediaFileRequest("/_emdash/api/comments/x", env)).toBe(false);
++	});
++
++	it("accepts true as well as 1", () => {
++		expect(mediaFilesArePrivate({ EMDASH_PRIVATE_MEDIA: "true" })).toBe(true);
++		expect(mediaFilesArePrivate({ EMDASH_PRIVATE_MEDIA: "0" })).toBe(false);
++	});
++});

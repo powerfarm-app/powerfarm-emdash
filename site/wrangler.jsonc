@@ -1,0 +1,37 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// Powerfarm on Cloudflare. See docs/DEPLOYMENT-CLOUDFLARE.md before the first deploy.
+	"name": "powerfarm",
+	"main": "./src/worker.ts",
+	"compatibility_date": "2026-02-24",
+	"compatibility_flags": ["nodejs_compat"],
+
+	// The only way in is the custom domain, which Cloudflare Access protects.
+	// workers.dev and preview URLs would bypass Access: both are off.
+	"workers_dev": false,
+	"preview_urls": false,
+	"routes": [
+		{ "pattern": "powerfarm.example.com", "custom_domain": true },
+	],
+
+	"d1_databases": [
+		{ "binding": "DB", "database_name": "powerfarm" },
+	],
+	// Private bucket: never enable r2.dev or a public custom domain on it.
+	"r2_buckets": [
+		{ "binding": "MEDIA", "bucket_name": "powerfarm-media" },
+	],
+
+	// EmDash maintenance and Powerfarm's plugin tasks, every minute.
+	"triggers": { "crons": ["* * * * *"] },
+
+	"vars": {
+		// Patch 0001: media and evidence files require a signed-in user.
+		"EMDASH_PRIVATE_MEDIA": "1",
+		// Passkeys are bound to this origin: set it before running setup.
+		"EMDASH_SITE_URL": "https://powerfarm.example.com",
+	},
+	// Secrets (never in this file): wrangler secret put EMDASH_ENCRYPTION_KEY
+
+	"observability": { "enabled": true },
+}

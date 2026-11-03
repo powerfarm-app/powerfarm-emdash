@@ -1,0 +1,128 @@
+diff --git a/packages/core/src/emdash-runtime.ts b/packages/core/src/emdash-runtime.ts
+index 7ac710d..72f0980 100644
+--- a/packages/core/src/emdash-runtime.ts
++++ b/packages/core/src/emdash-runtime.ts
+@@ -2470,6 +2470,12 @@ export class EmDashRuntime {
+ 			options,
+ 		) => {
+ 			const { seo, ...data } = input;
++			if (options?.references && options.sandboxOrigin) {
++				throw Object.assign(new Error("Sandboxed plugins cannot write references"), {
++					name: "FORBIDDEN",
++					code: "FORBIDDEN",
++				});
++			}
+ 			const result = await runtime.handleContentCreate(
+ 				collection,
+ 				{
+@@ -2477,6 +2483,7 @@ export class EmDashRuntime {
+ 					seo,
+ 					locale: resolveContentCreateLocale(options?.locale),
+ 					translationOf: options?.translationOf,
++					references: options?.references,
+ 				},
+ 				{
+ 					skipSaveHooks: options?.sandboxOrigin
+diff --git a/packages/core/src/plugins/context.ts b/packages/core/src/plugins/context.ts
+index 33a01e2..b657658 100644
+--- a/packages/core/src/plugins/context.ts
++++ b/packages/core/src/plugins/context.ts
+@@ -771,6 +771,18 @@ async function afterContentWrite(recordWrite: void | (() => Promise<void>)): Pro
+  * the content write. The returned `ContentItem.seo` reflects the resulting
+  * SEO state for SEO-enabled collections.
+  */
++/** Shape check for `ContentCreateOptions.references`; the create handler validates meaning. */
++function assertReferenceSelection(references: unknown): asserts references is Record<string, string[]> {
++	if (!references || typeof references !== "object" || Array.isArray(references)) {
++		throw new Error("references must be an object of field slug to entry ids");
++	}
++	for (const [field, ids] of Object.entries(references)) {
++		if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string" && id.length > 0)) {
++			throw new Error(`references.${field} must be an array of entry ids`);
++		}
++	}
++}
++
+ export function createContentAccessWithWrite(
+ 	db: Kysely<Database>,
+ 	beforeContentWrite?: ContentWriteGuard,
+@@ -792,6 +804,7 @@ export function createContentAccessWithWrite(
+ 			options?: ContentCreateOptions,
+ 		): Promise<ContentItem> {
+ 			const locale = resolveContentCreateLocale(options?.locale);
++			if (options?.references !== undefined) assertReferenceSelection(options.references);
+ 			const recordWrite = await beforeContentWrite?.();
+ 			if (contentCreate) {
+ 				const created = await contentCreate({
+@@ -802,6 +815,11 @@ export function createContentAccessWithWrite(
+ 				await afterContentWrite(recordWrite);
+ 				return created;
+ 			}
++			if (options?.references && Object.keys(options.references).length > 0) {
++				// Reference writes are validated by the runtime's create handler; this
++				// direct path has no handler, so refuse rather than drop them silently.
++				throw new Error("content.create with references requires the EmDash runtime content pipeline");
++			}
+ 			const { fields, seo } = splitSeoFromInput(data);
+ 			let contentMutated = false;
+ 
+diff --git a/packages/core/src/plugins/types.ts b/packages/core/src/plugins/types.ts
+index 6e2c020..7683d16 100644
+--- a/packages/core/src/plugins/types.ts
++++ b/packages/core/src/plugins/types.ts
+@@ -506,6 +506,14 @@ export interface ContentCreateOptions {
+ 	locale?: string;
+ 	/** Existing row in the same collection whose translation group the new row joins. */
+ 	translationOf?: string;
++	/**
++	 * Reference fields to set on the new entry, by field slug: the ordered entry ids
++	 * selected, exactly as the REST API's `references` body field. Validated by the
++	 * same create handler (relation binding, target collection, required fields), in
++	 * the same transaction as the entry. In-process (trusted) plugins only: requests
++	 * from sandboxed plugins that carry references are refused.
++	 */
++	references?: Record<string, string[]>;
+ }
+ 
+ export type PluginContentCreateCallback = (
+diff --git a/packages/core/tests/unit/plugins/content-create-references.test.ts b/packages/core/tests/unit/plugins/content-create-references.test.ts
+new file mode 100644
+index 0000000..bcb90d4
+--- /dev/null
++++ b/packages/core/tests/unit/plugins/content-create-references.test.ts
+@@ -0,0 +1,35 @@
++import { describe, expect, it } from "vitest";
++
++import { createContentAccessWithWrite } from "../../../src/plugins/context.js";
++
++// The database is never reached in these cases: the runtime callback stands in
++// for the create handler, and the direct path refuses before any query.
++const db = {} as never;
++
++describe("plugin content.create references (Powerfarm patch 0002)", () => {
++	it("forwards references to the runtime create pipeline unchanged", async () => {
++		const seen: unknown[] = [];
++		const access = createContentAccessWithWrite(db, undefined, undefined, async (call) => {
++			seen.push(call.options?.references);
++			return { id: "c1", type: call.collection, slug: null, status: "draft", data: call.input, createdAt: "", updatedAt: "" } as never;
++		});
++		await access.create("contracts", { title: "Contract" }, { references: { client: ["entry_1"], products: ["p1", "p2"] } });
++		expect(seen).toEqual([{ client: ["entry_1"], products: ["p1", "p2"] }]);
++	});
++
++	it("rejects malformed reference selections before writing", async () => {
++		let called = false;
++		const access = createContentAccessWithWrite(db, undefined, undefined, async () => {
++			called = true;
++			return {} as never;
++		});
++		await expect(access.create("contracts", { title: "x" }, { references: { client: "entry_1" } as never })).rejects.toThrow(/array of entry ids/);
++		await expect(access.create("contracts", { title: "x" }, { references: [] as never })).rejects.toThrow(/field slug/);
++		expect(called).toBe(false);
++	});
++
++	it("refuses references on the direct path that has no create handler", async () => {
++		const access = createContentAccessWithWrite(db);
++		await expect(access.create("contracts", { title: "x" }, { references: { client: ["e1"] } })).rejects.toThrow(/runtime content pipeline/);
++	});
++});
