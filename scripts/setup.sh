@@ -134,10 +134,21 @@ link_powerfarm
 retry pnpm install --no-frozen-lockfile
 node "$HERE/scripts/check-lockfile.mjs" .baseline-lock.yaml pnpm-lock.yaml
 pnpm build
-# pnpm links a package's bin only if its target exists at install time; EmDash's CLI
-# (dist/cli) exists only after the build, so link the bins now. Offline: nothing new
-# is fetched, and the lockfile is the one just checked.
-pnpm install --frozen-lockfile --offline
+# pnpm links a package's bin only if its target exists at install time, and EmDash's
+# CLI (packages/core/dist/cli) exists only after the build; a second install reports
+# "Already up to date" and links nothing. So link the CLI explicitly where Powerfarm
+# and the people running it need it, and put it on PATH for the checks below.
+CLI="$TARGET/packages/core/dist/cli/index.mjs"
+[[ -f "$CLI" ]] || { echo "EmDash's CLI was not built ($CLI)." >&2; exit 1; }
+for bindir in "$TARGET/node_modules/.bin" "$TARGET/powerfarm/site/node_modules/.bin" "$TARGET/powerfarm/plugin/node_modules/.bin"; do
+	mkdir -p "$bindir"
+	for name in emdash em; do
+		printf '#!/bin/sh\nexec node "%s" "$@"\n' "$CLI" > "$bindir/$name"
+		chmod +x "$bindir/$name"
+	done
+done
+export PATH="$TARGET/node_modules/.bin:$PATH"
+emdash --version >/dev/null 2>&1 || emdash --help >/dev/null 2>&1 || { echo "EmDash's CLI does not run." >&2; exit 1; }
 
 [[ $CHECKS -eq 1 ]] || { echo "Built $TARGET."; exit 0; }
 
