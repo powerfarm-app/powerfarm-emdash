@@ -166,6 +166,8 @@ try {
 		console.error(prod.log.join("").slice(-4000));
 		throw error;
 	} finally {
+		const errors = prod.log.join("").split("\n").filter((l) => /error/i.test(l));
+		if (errors.length) console.log(`Production server errors:\n${errors.slice(0, 20).join("\n")}`);
 		await prod.stop();
 	}
 
