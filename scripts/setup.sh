@@ -154,7 +154,7 @@ emdash --version >/dev/null 2>&1 || emdash --help >/dev/null 2>&1 || { echo "EmD
 
 echo
 echo "Checks"
-(cd packages/core && pnpm vitest run tests/unit/middleware/private-media.test.ts tests/unit/plugins/content-create-references.test.ts)
+(cd packages/core && pnpm vitest run tests/unit/middleware/private-media.test.ts tests/unit/plugins/content-create-references.test.ts tests/unit/plugins/routes.test.ts)
 (cd powerfarm/plugin && pnpm test)
 (cd powerfarm/plugin && pnpm typecheck)
 (cd powerfarm/mac/bridge && pnpm test)

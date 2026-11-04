@@ -141,12 +141,17 @@ An agent can hold only `mdm.command` today. AI clients still cannot publish, app
 | Auth URL | `https://<host>/_emdash/api/plugins/powerfarm/oidc/authorize` |
 | Token URL | `https://<host>/_emdash/api/plugins/powerfarm/oidc/token` |
 | Certificate URL | `https://<host>/_emdash/api/plugins/powerfarm/oidc/jwks` |
-| PKCE | on |
-| OIDC claims | `email`, `groups` (and `name` if you like) |
+| PKCE | on (Powerfarm refuses any request without S256 PKCE) |
+| OIDC claims | `pf_principal_id`, `email`, `groups` (and `name` if you like) |
+
+After saving, use Cloudflare's **Test** button on the identity provider and check that `pf_principal_id` appears among the returned claims.
+
+The issuer is `<EMDASH_SITE_URL>/_emdash/api/plugins/powerfarm/oidc`. It comes from EmDash's canonical site URL, never from the hostname a request arrived on. Powerfarm refuses to act as a provider if `EMDASH_SITE_URL` is missing or not `https://`.
 
 The ID token contains:
-- `sub`: the person's permanent `principal_id`;
-- `email`;
+- `sub` and `pf_principal_id`: the person's permanent `principal_id`. Cloudflare copies `pf_principal_id` into its own assertion (`oidc_fields`), and that is how Powerfarm recognises the person later, never by e-mail;
+- `email`: the person's Powerfarm contact address;
+- `email_verified`: `true` only when EmDash has verified that address for the signed-in account (patch 0003 exposes this) and it is the same address as on the Powerfarm person. An account created with only a passkey has no verified address, so this is `false`;
 - `name`;
 - `groups`: only staff, engineering, operations, administrators and contractors, taken from the person record.
 
@@ -182,10 +187,11 @@ EmDash itself must stay in **passkey** auth mode. If EmDash were configured to t
 
 A service behind its own Access application forwards the `Cf-Access-Jwt-Assertion` it received to `GET /_emdash/api/plugins/powerfarm/identity/whoami-access`. Its call passes Powerfarm's Access with a service token allowed on that path only. Powerfarm then:
 - verifies the assertion against `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`, checking the issuer, one of the configured audiences, expiry and signature;
-- maps it to the principal Powerfarm itself issued a token for (`oidc:issued:<email>`);
+- reads `oidc_fields.pf_principal_id` and finds the person or agent with that permanent id;
+- refuses a principal who is no longer active (403 `principal_inactive`), even while Cloudflare still honours a session issued before the suspension;
 - answers with the principal id, groups and current grants.
 
-An assertion from a break-glass login or another IdP is not a principal (404). Allow only the Powerfarm IdP on applications that rely on this.
+An assertion with no `pf_principal_id` (a break-glass login, another IdP, or the claim not configured) is not a principal (404). The e-mail in an assertion is never used to identify anyone: an address that once belonged to one person cannot make someone else that person.
 
 Settings:
 - *Cloudflare Access: team domain*;
@@ -266,8 +272,10 @@ Guides: [MDM.md](MDM.md), [ENTITIES.md](ENTITIES.md), [DEPLOYMENT-CLOUDFLARE.md]
 1. Run `edge-check --oidc` against the deployed host: the bypass is exact.
 2. Do a real Cloudflare Access sign-in through Powerfarm:
    - confirm that Cloudflare accepts the token response. Powerfarm returns an opaque `access_token` and has no userinfo endpoint; Cloudflare's generic OIDC is expected to read the ID token claims, and this must be confirmed;
+   - confirm that Cloudflare accepts `email_verified: false` for a passkey-only account, or decide how the address gets verified in EmDash;
+   - confirm that `pf_principal_id` arrives in the Access assertion under `oidc_fields` (the format follows Cloudflare's documentation and is unconfirmed);
    - confirm that `groups` arrive in Access policies;
-   - confirm that a suspended person is refused.
+   - **identity continuity**: sign in as A and note the principal id; change A's e-mail and sign in again, and the id must be unchanged; give A's old e-mail to B, and B must resolve to a different principal; suspend A, and A's existing Access session must be refused by `whoami-access`.
 3. Run the break-glass login while Powerfarm is unreachable.
 4. Call `identity/whoami-access` from a real Free Zone service.
 5. Run the `access-logs` task against the real Access audit log API: check the field names and that the `since` paging matches.

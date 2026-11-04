@@ -121,6 +121,23 @@ export async function principalBySubject(reader: ContentReader, subject: string)
 	};
 }
 
+/**
+ * The principal whose permanent id this is (people first, then agents). Ambiguity
+ * (two published records with one id, which the unique field should prevent) is
+ * treated as no principal: identity must never be guessed.
+ */
+export async function principalById(reader: ContentReader, principalId: string): Promise<Principal | null> {
+	if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(principalId)) return null;
+	const found: Array<{ collection: "people" | "agents"; entity: Awaited<ReturnType<ContentReader["byField"]>>[number] }> = [];
+	for (const collection of ["people", "agents"] as const) {
+		// oxlint-disable-next-line no-await-in-loop -- two collections
+		for (const entity of await reader.byField(collection, "principal_id", [principalId], "published", 2)) found.push({ collection, entity });
+	}
+	if (found.length !== 1) return null;
+	const { collection, entity } = found[0]!;
+	return principalBySubject(reader, `${collection}:${entity.key}`);
+}
+
 /** Does `scope` of a grant cover the requested scope? `*`, a collection, or an exact `collection:KEY`. */
 export function scopeCovers(granted: string, requested: string): boolean {
 	const g = granted.trim();
@@ -163,7 +180,9 @@ export async function authorize(ctx: Ctx, reader: ContentReader, input: { actor?
 			source: "policy",
 			title: `${d.wouldAllow ? "Allowed" : enforced ? "Denied" : "Would deny"}: ${input.capability} on ${input.scope}${input.what ? ` (${input.what})` : ""}`.slice(0, 200),
 			payload: { ...d, requestedBy: input.actor?.id ?? null, actingSource: input.actor?.source ?? null, at: now.toISOString() },
-		}).catch(() => undefined);
+		});
+		// No catch: a decision that cannot be journalled is not a decision. The journal
+		// marks the platform audit-degraded and throws; the protected action does not run.
 		return d;
 	};
 

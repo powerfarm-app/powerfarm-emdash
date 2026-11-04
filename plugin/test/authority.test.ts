@@ -196,3 +196,24 @@ test("release gate: CI drafts, a non-author with release.production approves, th
 	const late = await authorizeDeploy(w.ctx as never, reader(), ask);
 	await assert.rejects(recordDeployment(w.ctx as never, { authorization: late.authorization, ok: true }, new Date(Date.now() + 20 * 60_000)), /expired/);
 });
+
+test("fail closed: a decision that cannot be journalled is not given, the platform is audit-degraded, and the protected action does not happen", async () => {
+	const dan = await activePerson(ADMIN, "Dan");
+	const ana = await activePerson(EDITOR, "Ana");
+	enforceAll();
+	assert.equal((await grant(ADMIN, dan.subject, "authority.grant")).refused, undefined);
+	const journalStore = w.ctx.storage.journal as unknown as { compareAndSet: (...a: unknown[]) => Promise<unknown> };
+	const original = journalStore.compareAndSet.bind(journalStore);
+	journalStore.compareAndSet = async () => {
+		throw new Error("storage unavailable");
+	};
+	await assert.rejects(authorize(w.ctx as never, reader(), { actor: ADMIN, capability: "authority.grant", scope: "*" }), /storage unavailable/);
+	const degraded = (await w.ctx.kv.get("audit:degraded")) as { degraded: boolean } | null;
+	assert.equal(degraded?.degraded, true, "the failure is visible, not swallowed");
+	const g = await w.draftAs(EDITOR, "grants", { title: "approve.profile for Ana", principal: ana.subject, capability: "approve.profile", scope: "*", task: "MDM profiles", valid_until: inDays(30) });
+	const outcome = await w.publishAs(ADMIN, "grants", g.id).then((r) => r ?? "published", (e: Error) => `threw: ${e.message}`);
+	assert.match(outcome, /threw: .*storage unavailable/, "the publish hook fails, so EmDash aborts the publish");
+	assert.notEqual(w.row("grants", g.id)!.status, "published", "the grant is not published while its authority cannot be recorded");
+	journalStore.compareAndSet = original;
+	assert.equal((await authorize(w.ctx as never, reader(), { actor: ADMIN, capability: "authority.grant", scope: "*" })).allowed, true, "journal back: decisions resume");
+});
