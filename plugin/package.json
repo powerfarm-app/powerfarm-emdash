@@ -1,6 +1,6 @@
 {
 	"name": "@powerfarm/emdash-plugin",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"private": true,
 	"description": "Powerfarm graph, entities and identity registry, lifecycle controls, onboarding blueprints, Mission 001 recovery workflow and Apple Hardware Bridge endpoints for EmDash",
 	"type": "module",

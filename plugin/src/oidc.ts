@@ -62,6 +62,8 @@ export interface OidcClient {
 }
 
 type Ctx = Parameters<typeof record>[0] & {
+	/** EmDash's canonical site, from EMDASH_SITE_URL (or the site settings): the one issuer. */
+	site?: { url: string };
 	settings: { get<T>(k: string): Promise<T | null>; set(k: string, v: unknown): Promise<void> };
 	kv: { get<T>(k: string): Promise<T | null>; set(k: string, v: unknown): Promise<void>; delete(k: string): Promise<boolean>; getVersioned<T>(k: string): Promise<{ value: T; revision: string } | null>; compareAndDelete(k: string, rev: string): Promise<{ applied: boolean } | boolean> };
 };
@@ -74,12 +76,26 @@ async function clients(ctx: Ctx): Promise<OidcClient[]> {
 	return Array.isArray(raw) ? raw : [];
 }
 
-export function issuer(origin: string): string {
-	return `${origin}${OIDC_BASE}`;
+/**
+ * The issuer is fixed by EmDash's canonical site URL, never by the hostname a request
+ * arrived on: discovery and every ID token name exactly one issuer.
+ */
+export function issuer(ctx: { site?: { url: string } }): string {
+	const url = (ctx.site?.url ?? "").replace(/\/+$/, "");
+	let u: URL;
+	try {
+		u = new URL(url);
+	} catch {
+		throw new OidcError("server_error", "EmDash has no canonical site URL (set EMDASH_SITE_URL): the OIDC issuer cannot be determined", 503);
+	}
+	const local = u.hostname === "localhost" || u.hostname === "127.0.0.1";
+	if (u.protocol !== "https:" && !(local && u.protocol === "http:")) throw new OidcError("server_error", "The OIDC issuer must be an https:// address", 503);
+	if (u.pathname !== "/" && u.pathname !== "") throw new OidcError("server_error", "EMDASH_SITE_URL must be an origin without a path", 503);
+	return `${u.origin}${OIDC_BASE}`;
 }
 
-export function discovery(origin: string) {
-	const iss = issuer(origin);
+export function discovery(ctx: { site?: { url: string } }) {
+	const iss = issuer(ctx);
 	return {
 		issuer: iss,
 		authorization_endpoint: `${iss}/authorize`,
@@ -91,7 +107,7 @@ export function discovery(origin: string) {
 		scopes_supported: ["openid", "email", "profile", "groups"],
 		token_endpoint_auth_methods_supported: ["client_secret_basic", "client_secret_post"],
 		code_challenge_methods_supported: ["S256"],
-		claims_supported: ["sub", "email", "name", "groups", "nonce"],
+		claims_supported: ["sub", "pf_principal_id", "email", "email_verified", "name", "groups", "nonce"],
 	};
 }
 
@@ -104,16 +120,19 @@ export async function startAuthorization(ctx: Ctx, q: Record<string, string | un
 	if (!(q.scope ?? "").split(/\s+/).includes("openid")) throw new OidcError("invalid_scope", "scope must include openid");
 	if (!q.state || q.state.length > 512) throw new OidcError("invalid_request", "state is required");
 	if (q.nonce && q.nonce.length > 512) throw new OidcError("invalid_request", "nonce too long");
-	if (q.code_challenge && q.code_challenge_method !== "S256") throw new OidcError("invalid_request", "Only S256 PKCE");
+	// PKCE is mandatory (RFC 9700): no challenge, no code. Only S256.
+	if (!q.code_challenge) throw new OidcError("invalid_request", "PKCE code_challenge is required");
+	if (q.code_challenge_method !== "S256") throw new OidcError("invalid_request", "Only S256 PKCE is supported");
+	if (!/^[A-Za-z0-9_-]{43}$/.test(q.code_challenge)) throw new OidcError("invalid_request", "Invalid S256 code_challenge");
 	const rid = random(24);
-	await ctx.kv.set(`oidc:req:${rid}`, { client_id: client.client_id, redirect_uri: q.redirect_uri, state: q.state, nonce: q.nonce ?? null, code_challenge: q.code_challenge ?? null, scope: q.scope, at: Date.now() });
+	await ctx.kv.set(`oidc:req:${rid}`, { client_id: client.client_id, redirect_uri: q.redirect_uri, state: q.state, nonce: q.nonce ?? null, code_challenge: q.code_challenge, scope: q.scope, at: Date.now() });
 	return `${CONTINUE_PAGE}?rid=${rid}`;
 }
 
 /** Step 2, signed in. Returns the client's redirect with code and state. */
-export async function continueAuthorization(ctx: Ctx, reader: ContentReader, rid: string, user: { id: string } | null, now = Date.now()): Promise<string> {
+export async function continueAuthorization(ctx: Ctx, reader: ContentReader, rid: string, user: { id: string; email?: string; emailVerified?: boolean } | null, now = Date.now()): Promise<string> {
 	if (!user) throw new OidcError("login_required", "Sign in first", 401);
-	const req = await ctx.kv.get<{ client_id: string; redirect_uri: string; state: string; nonce: string | null; code_challenge: string | null; at: number }>(`oidc:req:${rid}`);
+	const req = await ctx.kv.get<{ client_id: string; redirect_uri: string; state: string; nonce: string | null; code_challenge: string; at: number }>(`oidc:req:${rid}`);
 	await ctx.kv.delete(`oidc:req:${rid}`);
 	if (!req || now - req.at > REQUEST_TTL_MS) throw new OidcError("invalid_request", "This sign-in request expired; start again from the application", 400);
 	const principal = await principalOf(reader, user.id);
@@ -133,8 +152,12 @@ export async function continueAuthorization(ctx: Ctx, reader: ContentReader, rid
 		return deny("This identity is not active");
 	}
 	if (!principal.principalId) return deny("This identity has no permanent id yet");
+	// email_verified is claimed only when EmDash verified the account's address AND it is
+	// the address on the Powerfarm person record. Powerfarm never invents verification.
+	const contact = claimsFor(principal).email;
+	const emailVerified = user.emailVerified === true && !!contact && contact === (user.email ?? "").trim().toLowerCase();
 	const code = random(32);
-	await ctx.kv.set(`oidc:code:${code}`, { ...req, subject: principal.subject, userId: user.id, issuedAt: now });
+	await ctx.kv.set(`oidc:code:${code}`, { ...req, subject: principal.subject, userId: user.id, email: contact, emailVerified, issuedAt: now });
 	const u = new URL(req.redirect_uri);
 	u.searchParams.set("code", code);
 	u.searchParams.set("state", req.state);
@@ -147,7 +170,7 @@ function claimsFor(p: Principal) {
 }
 
 /** Step 3: the client exchanges the code. */
-export async function exchangeCode(ctx: Ctx, reader: ContentReader, origin: string, form: Record<string, string | undefined>, basicAuth: string | null, now = Date.now()) {
+export async function exchangeCode(ctx: Ctx, reader: ContentReader, form: Record<string, string | undefined>, basicAuth: string | null, now = Date.now()) {
 	let clientId = form.client_id;
 	let secret = form.client_secret;
 	if (basicAuth?.startsWith("Basic ")) {
@@ -159,32 +182,36 @@ export async function exchangeCode(ctx: Ctx, reader: ContentReader, origin: stri
 	if (!client || !secret || (await sha256Hex(secret)) !== client.client_secret_sha256) throw new OidcError("invalid_client", "Client authentication failed", 401);
 	if (form.grant_type !== "authorization_code" || !form.code) throw new OidcError("unsupported_grant_type", "Only authorization_code");
 	const key = `oidc:code:${form.code}`;
-	const held = await ctx.kv.getVersioned<{ client_id: string; redirect_uri: string; nonce: string | null; code_challenge: string | null; subject: string; userId: string; issuedAt: number }>(key);
+	const held = await ctx.kv.getVersioned<{ client_id: string; redirect_uri: string; nonce: string | null; code_challenge: string; subject: string; userId: string; email: string | null; emailVerified: boolean; issuedAt: number }>(key);
 	if (!held) throw new OidcError("invalid_grant", "Unknown or used code");
-	const del = await ctx.kv.compareAndDelete(key, held.revision);
-	if (!(typeof del === "boolean" ? del : del.applied)) throw new OidcError("invalid_grant", "Code already used");
 	const c = held.value;
 	if (now - c.issuedAt > CODE_TTL_MS) throw new OidcError("invalid_grant", "Code expired");
 	if (c.client_id !== client.client_id || c.redirect_uri !== form.redirect_uri) throw new OidcError("invalid_grant", "Code was issued to another client or redirect");
-	if (c.code_challenge) {
-		const v = form.code_verifier ?? "";
-		const challenge = b64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v))));
-		if (challenge !== c.code_challenge) throw new OidcError("invalid_grant", "PKCE verification failed");
-	}
+	// PKCE before the code is consumed: a wrong verifier cannot burn the right client's code.
+	const v = form.code_verifier ?? "";
+	if (!c.code_challenge || v.length < 43 || v.length > 128 || !/^[A-Za-z0-9._~-]+$/.test(v)) throw new OidcError("invalid_grant", "Invalid PKCE code_verifier");
+	const challenge = b64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v))));
+	if (challenge !== c.code_challenge) throw new OidcError("invalid_grant", "PKCE verification failed");
+	// Single use: only one exchange of this revision can delete it.
+	const del = await ctx.kv.compareAndDelete(key, held.revision);
+	if (!(typeof del === "boolean" ? del : del.applied)) throw new OidcError("invalid_grant", "Code already used");
 	// Status is checked again at the moment of issuance: a suspension in between wins.
 	const { principalBySubject } = await import("./authority.js");
 	const p = await principalBySubject(reader, c.subject);
 	if (!p?.active || !p.principalId) throw new OidcError("invalid_grant", "This identity is not active");
 	const claims = claimsFor(p);
 	if (!claims.email) throw new OidcError("invalid_grant", `${p.subject} has no contact e-mail; Cloudflare Access needs one`);
+	// The person's address changed after sign-in: the verification no longer applies to it.
+	const emailVerified = c.emailVerified === true && c.email === claims.email;
 	const jwk = await ctx.settings.get<PrivateJwk | string>(OIDC_SETTINGS.signingKey);
 	const key2 = typeof jwk === "string" ? (JSON.parse(jwk) as PrivateJwk) : jwk;
 	if (!key2?.kid) throw new OidcError("server_error", "No signing key: rotate one in first (identity/oidc/rotate-key)", 503);
 	const iat = Math.floor(now / 1000);
-	const idToken = await signJwt({ iss: issuer(origin), sub: p.principalId, aud: client.client_id, iat, exp: iat + TOKEN_TTL_S, ...(c.nonce ? { nonce: c.nonce } : {}), email: claims.email, email_verified: true, name: claims.name, groups: claims.groups }, key2);
-	// Powerfarm's own record of which e-mail it asserted for which principal: how Access assertions map back.
-	await ctx.kv.set(`oidc:issued:${claims.email}`, { subject: p.subject, principalId: p.principalId, at: new Date(now).toISOString() });
-	await record(ctx, { type: "oidc.issued", stream: "authority", actor: `user:${c.userId}`, source: "policy", title: `ID token issued to ${client.client_id} for ${p.subject}`, payload: { client: client.client_id, subject: p.subject, groups: claims.groups } });
+	// sub and pf_principal_id are the permanent principal id. Cloudflare Access copies the
+	// custom claim pf_principal_id into its own assertion (oidc_fields), which is how
+	// identity/whoami-access finds the person: never by e-mail.
+	const idToken = await signJwt({ iss: issuer(ctx), sub: p.principalId, pf_principal_id: p.principalId, aud: client.client_id, iat, exp: iat + TOKEN_TTL_S, ...(c.nonce ? { nonce: c.nonce } : {}), email: claims.email, email_verified: emailVerified, name: claims.name, groups: claims.groups }, key2);
+	await record(ctx, { type: "oidc.issued", stream: "authority", actor: `user:${c.userId}`, source: "policy", title: `ID token issued to ${client.client_id} for ${p.subject}`, payload: { client: client.client_id, subject: p.subject, principalId: p.principalId, groups: claims.groups, emailVerified } });
 	return { access_token: random(32), token_type: "Bearer", expires_in: TOKEN_TTL_S, id_token: idToken };
 }
 

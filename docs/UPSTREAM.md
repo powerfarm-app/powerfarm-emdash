@@ -42,8 +42,9 @@ Powerfarm and EmDash can overlap in three places. Each one shows up as a red che
 | **An EmDash API the plugin uses changed** (hooks, route context, content, settings, KV) | Plugin typecheck or tests fail | Adapt the plugin in the same PR. The pin keeps production on the old version until the PR is green. |
 | **Upstream adds something with the same name** (a collection, setting or route Powerfarm already uses) | Seed validation or tests fail. Powerfarm's routes live under `/_emdash/api/plugins/powerfarm/` and its settings and storage are per-plugin, so clashes are limited to content collection slugs. | Rename on Powerfarm's side with a migration, or adopt upstream's version if it does the same job. |
 
-The two patches are the only places where Powerfarm changes EmDash itself:
+The three patches are the only places where Powerfarm changes EmDash itself:
 - **0001** makes media files require sign-in;
-- **0002** lets trusted plugins attach references when creating content.
+- **0002** lets trusted plugins attach references when creating content;
+- **0003** passes EmDash's own verified-email state (`User.emailVerified`) to plugins, which the read-only user shape dropped.
 
-Both are small and self-contained, and both are worth proposing upstream. Each one EmDash accepts is one less thing that can ever conflict.
+All are small and self-contained, with their own EmDash tests, and all are worth proposing upstream. Each one EmDash accepts is one less thing that can ever conflict.

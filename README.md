@@ -11,7 +11,7 @@ Cloudflare, and the code for the lab Mac minis (later, the iPhone Identity App).
 | `site/` | The EmDash site that loads the plugin on Cloudflare (Workers, D1, R2): Astro config, `wrangler.jsonc`, the Worker entry, the `/oidc/continue` page, and the seed and migrations of the content model. `astro.config.node.mjs` is the self-hosted Node/SQLite variant. |
 | `mac/bridge/` | The Apple Hardware Bridge on the lab Mac minis. It pulls approved jobs from Powerfarm through Cloudflare Access, runs a fixed `cfgutil` command table, holds the MDM device CA, and relays MDM pushes. |
 | `ios/` | *Later:* the iPhone Identity App (see the Identity App spec). |
-| `upstream/` | The EmDash pin (`emdash.json`) and Powerfarm's two patches to EmDash. EmDash itself is never copied here ([docs/UPSTREAM.md](docs/UPSTREAM.md)). |
+| `upstream/` | The EmDash pin (`emdash.json`) and Powerfarm's three small patches to EmDash. EmDash itself is never copied here ([docs/UPSTREAM.md](docs/UPSTREAM.md)). |
 | `scripts/` | `setup.sh` (EmDash at the pin, patches, build, every check: used by people and CI), `check-lockfile.mjs`, `edge-check.mjs`, `smoke.mjs`, `cf-backup.mjs`, `backup.mjs`, `restore.mjs`, `release.mjs`. |
 | `docs/` | Runbooks, architecture, the implementation reports. |
 | `.github/` | CI, the weekly EmDash upstream check, Dependabot for Actions ([docs/CICD.md](docs/CICD.md)). |

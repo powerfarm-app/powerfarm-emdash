@@ -233,6 +233,7 @@ export function fakeCtx(settings: Record<string, unknown> = {}) {
 	};
 	return {
 		plugin: { id: "powerfarm", version: "test" },
+		site: { name: "Powerfarm", url: "https://powerfarm.example.org", locale: "en" },
 		storage,
 		kv: new FakeKV(),
 		content,

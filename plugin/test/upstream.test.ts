@@ -67,7 +67,7 @@ test("Powerfarm's importers are allowed; a new package, a changed version or a f
 });
 
 test("the patches the setup script applies exist and are plain unified diffs against EmDash paths", () => {
-	for (const name of ["0001-private-media-files.patch", "0002-plugin-create-references.patch"]) {
+	for (const name of ["0001-private-media-files.patch", "0002-plugin-create-references.patch", "0003-plugin-user-email-verified.patch"]) {
 		const text = readFileSync(path.join(root, "upstream", "patches", name), "utf8");
 		assert.match(text, /^diff --git a\/packages\//m, name);
 	}

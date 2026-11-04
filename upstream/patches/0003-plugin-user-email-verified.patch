@@ -1,0 +1,100 @@
+Powerfarm patch 0003: expose the user's verified-email state to plugins.
+
+EmDash stores User.emailVerified, but the read-only user shape plugins receive
+(ctx.user on routes, ctx.users.get/getByEmail/list) drops it. Powerfarm's OIDC
+provider must not claim email_verified unless EmDash verified the address.
+Adds an optional boolean to UserInfo, filled where the host knows it. Generic,
+no Powerfarm concepts; intended to be proposed upstream.
+
+diff --git a/packages/core/src/plugins/context.ts b/packages/core/src/plugins/context.ts
+index b657658..ffcc472 100644
+--- a/packages/core/src/plugins/context.ts
++++ b/packages/core/src/plugins/context.ts
+@@ -1462,6 +1462,7 @@ function toUserInfo(user: {
+ 	name: string | null;
+ 	role: number;
+ 	createdAt: string;
++	emailVerified?: boolean;
+ }): UserInfo {
+ 	return {
+ 		id: user.id,
+@@ -1469,6 +1470,7 @@ function toUserInfo(user: {
+ 		name: user.name,
+ 		role: user.role,
+ 		createdAt: user.createdAt,
++		...(typeof user.emailVerified === "boolean" ? { emailVerified: user.emailVerified } : {}),
+ 	};
+ }
+ 
+diff --git a/packages/core/src/plugins/routes.ts b/packages/core/src/plugins/routes.ts
+index 45ed1fa..94c100b 100644
+--- a/packages/core/src/plugins/routes.ts
++++ b/packages/core/src/plugins/routes.ts
+@@ -177,6 +177,7 @@ export interface RouteCallerInput {
+ 	name: string | null;
+ 	role: number;
+ 	createdAt: Date | string;
++	emailVerified?: boolean;
+ }
+ 
+ /**
+@@ -191,6 +192,7 @@ export function toRouteCallerInfo(user: RouteCallerInput): UserInfo {
+ 		name: user.name,
+ 		role: user.role,
+ 		createdAt: typeof user.createdAt === "string" ? user.createdAt : user.createdAt.toISOString(),
++		...(typeof user.emailVerified === "boolean" ? { emailVerified: user.emailVerified } : {}),
+ 	};
+ }
+ 
+diff --git a/packages/core/src/plugins/types.ts b/packages/core/src/plugins/types.ts
+index 7683d16..2784696 100644
+--- a/packages/core/src/plugins/types.ts
++++ b/packages/core/src/plugins/types.ts
+@@ -993,6 +993,12 @@ export interface UserInfo {
+ 	name: string | null;
+ 	role: number;
+ 	createdAt: string;
++	/**
++	 * Whether EmDash has verified the user's email address (for example by a magic
++	 * link or an identity provider that asserts it). Passkey-only accounts created
++	 * at setup are not verified. Optional: absent where the host does not know.
++	 */
++	emailVerified?: boolean;
+ }
+ 
+ /**
+diff --git a/packages/core/tests/unit/plugins/routes.test.ts b/packages/core/tests/unit/plugins/routes.test.ts
+index 7e3ea3a..e42ee14 100644
+--- a/packages/core/tests/unit/plugins/routes.test.ts
++++ b/packages/core/tests/unit/plugins/routes.test.ts
+@@ -160,6 +160,30 @@ describe("toRouteCallerInfo", () => {
+ 		});
+ 	});
+ 
++	it("passes the host's verified-email state when it is known, and nothing else", () => {
++		const verified = toRouteCallerInfo({
++			id: "u2",
++			email: "v@b.c",
++			name: "V",
++			role: 50,
++			createdAt: "2026-01-02T03:04:05.000Z",
++			emailVerified: true,
++		});
++		expect(verified.emailVerified).toBe(true);
++		const passkeyOnly = toRouteCallerInfo({
++			id: "u3",
++			email: "p@b.c",
++			name: null,
++			role: 50,
++			createdAt: "2026-01-02T03:04:05.000Z",
++			emailVerified: false,
++		});
++		expect(passkeyOnly.emailVerified).toBe(false);
++		const unknown = toRouteCallerInfo({ id: "u4", email: "u@b.c", name: null, role: 10, createdAt: "2026-01-02T03:04:05.000Z" });
++		expect("emailVerified" in unknown).toBe(false);
++		expect(Object.keys(verified).sort()).toEqual(["createdAt", "email", "emailVerified", "id", "name", "role"]);
++	});
++
+ 	it("passes string createdAt through and strips extra fields", () => {
+ 		// Extra host-side fields (avatarUrl, data, …) must not leak to plugins.
+ 		const hostUser = {

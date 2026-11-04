@@ -31,7 +31,7 @@ beforeEach(() => {
 });
 
 type Handler = (ctx: unknown) => Promise<unknown>;
-async function call(name: string, opts: { input?: unknown; user?: { id: string; role: number } | null; headers?: Record<string, string>; url?: string } = {}) {
+async function call(name: string, opts: { input?: unknown; user?: { id: string; role: number; email?: string; emailVerified?: boolean } | null; headers?: Record<string, string>; url?: string } = {}) {
 	const route = routes[name] as unknown as { handler: Handler; input?: { parse(v: unknown): unknown } };
 	const input = route.input ? route.input.parse(opts.input ?? {}) : opts.input;
 	const request = new Request(opts.url ?? `${ORIGIN}/_emdash/api/plugins/powerfarm/${name}`, { headers: opts.headers ?? {} });
@@ -62,7 +62,7 @@ async function pkce() {
 	return { verifier, challenge };
 }
 
-async function authorizeAndContinue(user: { id: string; role: number }, challenge: string) {
+async function authorizeAndContinue(user: { id: string; role: number; email?: string; emailVerified?: boolean }, challenge: string) {
 	const q = { client_id: "cloudflare-access", redirect_uri: REDIRECT, response_type: "code", scope: "openid email profile groups", state: "st-123", nonce: "n-456", code_challenge: challenge, code_challenge_method: "S256" };
 	const start = await call("oidc/authorize", { input: q });
 	assert.equal(raw(start).status, 302);
@@ -163,8 +163,9 @@ test("key rotation and client registration are governed: refused without idp.key
 	assert.ok(!JSON.stringify(journal()).includes("client_secret\":\""), "the client secret is never journalled");
 });
 
-test("whoami behind Access: a valid assertion maps to the principal Powerfarm issued for; a wrong audience, a service token or an unknown e-mail do not", async () => {
+test("whoami behind Access: the person is found by the pf_principal_id claim Cloudflare copies from Powerfarm's ID token, never by e-mail; inactive is refused", async () => {
 	const dan = await activePerson(ADMIN, "Dan", { contact_email: "dan@example.org" });
+	const ana = await activePerson(EDITOR, "Ana", { contact_email: "ana@example.org" });
 	const team = "team.cloudflareaccess.com";
 	settings()[CF_SETTINGS.teamDomain] = team;
 	settings()[CF_SETTINGS.audiences] = "aud-free-zone";
@@ -172,24 +173,111 @@ test("whoami behind Access: a valid assertion maps to the principal Powerfarm is
 	const now = Math.floor(Date.now() / 1000);
 	await w.ctx.kv.set(`access:certs:${team}`, { at: now, keys: [publicJwk(accessKey)] });
 	const assertion = (claims: Record<string, unknown>) => signJwt({ iss: `https://${team}`, aud: ["aud-free-zone"], iat: now, exp: now + 300, sub: "cf-user-1", email: "dan@example.org", ...claims }, accessKey);
+	const who = async (claims: Record<string, unknown>) => call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion(claims) } });
 
-	const unknown = await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion({}) } });
-	assert.equal(raw(unknown).status, 404, "an Access identity Powerfarm did not issue (break-glass PIN, another IdP) is not a principal");
-
-	await w.ctx.kv.set("oidc:issued:dan@example.org", { subject: dan.subject, principalId: dan.principalId, at: new Date().toISOString() });
-	const ok = await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion({}) } });
+	assert.equal(raw(await who({})).status, 404, "no pf_principal_id: a break-glass PIN or another IdP is not a Powerfarm principal");
+	const ok = await who({ oidc_fields: { pf_principal_id: dan.principalId } });
 	assert.equal(raw(ok).status, 200, raw(ok).body?.value);
 	assert.equal(bodyOf(ok).principal.principalId, dan.principalId);
 
-	assert.equal(raw(await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion({ aud: ["another-app"] }) } })).status, 401);
-	assert.equal(raw(await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion({ email: undefined }) } })).status, 401, "service tokens carry no person");
-	assert.equal(raw(await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": await assertion({ exp: now - 3600 }) } })).status, 401);
-	const forged = await signJwt({ iss: `https://${team}`, aud: ["aud-free-zone"], exp: now + 300, sub: "x", email: "dan@example.org" }, await generateSigningKey());
+	// Identity continuity: the claim decides, the e-mail does not.
+	const reassigned = await who({ email: "dan@example.org", oidc_fields: { pf_principal_id: ana.principalId } });
+	assert.equal(bodyOf(reassigned).principal.principalId, ana.principalId, "an e-mail that once was Dan's never makes someone Dan");
+	assert.equal(raw(await who({ oidc_fields: { pf_principal_id: "00000000-0000-4000-8000-000000000000" } })).status, 404);
+	assert.equal(raw(await who({ oidc_fields: { pf_principal_id: "people:PE-0001" } })).status, 404, "only a principal id, not a code or an e-mail");
+
+	assert.equal(raw(await who({ aud: ["another-app"], oidc_fields: { pf_principal_id: dan.principalId } })).status, 401);
+	assert.equal(raw(await who({ email: undefined, oidc_fields: { pf_principal_id: dan.principalId } })).status, 401, "service tokens carry no person");
+	assert.equal(raw(await who({ exp: now - 3600, oidc_fields: { pf_principal_id: dan.principalId } })).status, 401);
+	const forged = await signJwt({ iss: `https://${team}`, aud: ["aud-free-zone"], exp: now + 300, sub: "x", email: "dan@example.org", oidc_fields: { pf_principal_id: dan.principalId } }, await generateSigningKey());
 	assert.equal(raw(await call("identity/whoami-access", { headers: { "cf-access-jwt-assertion": forged } })).status, 401, "a token not signed by the team's key is refused");
 	assert.equal(raw(await call("identity/whoami-access")).status, 401);
 
+	// A suspended person keeps a Cloudflare session until it expires or is revoked; Powerfarm refuses it at once.
+	await w.editAs(ADMIN, "people", ana.id, { lifecycle: "suspended" });
+	assert.equal(await w.publishAs(ADMIN, "people", ana.id), undefined);
+	const refused = await who({ oidc_fields: { pf_principal_id: ana.principalId } });
+	assert.equal(raw(refused).status, 403);
+	assert.equal(bodyOf(refused).error, "principal_inactive");
+
 	const me = (await call("identity/whoami", { user: ADMIN })) as { principal: { subject: string } };
 	assert.equal(me.principal.subject, dan.subject);
+});
+
+test("PKCE is mandatory: no challenge, plain, a malformed challenge or verifier are refused; a wrong verifier does not burn the code", async () => {
+	await activePerson(ADMIN, "Dan", { contact_email: "dan@example.org" });
+	const { secret } = await setUpProvider();
+	const base = { client_id: "cloudflare-access", redirect_uri: REDIRECT, response_type: "code", scope: "openid email", state: "s" };
+	assert.match(bodyOf(await call("oidc/authorize", { input: base })).error_description, /code_challenge is required/);
+	assert.match(bodyOf(await call("oidc/authorize", { input: { ...base, code_challenge: "x".repeat(43) } })).error_description, /Only S256/, "a missing method is not S256");
+	assert.match(bodyOf(await call("oidc/authorize", { input: { ...base, code_challenge: "x".repeat(43), code_challenge_method: "plain" } })).error_description, /Only S256/);
+	assert.match(bodyOf(await call("oidc/authorize", { input: { ...base, code_challenge: "short", code_challenge_method: "S256" } })).error_description, /Invalid S256/);
+
+	const { verifier, challenge } = await pkce();
+	const code = (await authorizeAndContinue(ADMIN, challenge)).searchParams.get("code")!;
+	const exchange = (v: string | undefined) => call("oidc/token", { input: tokenForm({ grant_type: "authorization_code", code, redirect_uri: REDIRECT, ...(v === undefined ? {} : { code_verifier: v }) }), headers: { authorization: basic("cloudflare-access", secret) } });
+	assert.match(bodyOf(await exchange(undefined)).error_description, /Invalid PKCE code_verifier/);
+	assert.match(bodyOf(await exchange("too-short")).error_description, /Invalid PKCE code_verifier/);
+	assert.match(bodyOf(await exchange("a".repeat(43) + "!")).error_description, /Invalid PKCE code_verifier/);
+	assert.match(bodyOf(await exchange("b".repeat(64))).error_description, /PKCE verification failed/);
+	const good = await exchange(verifier);
+	assert.equal(raw(good).status, 200, "the right client still redeems its code after an attacker's wrong verifiers");
+	assert.equal(bodyOf(await exchange(verifier)).error, "invalid_grant", "and only once");
+});
+
+test("two simultaneous exchanges of one code: exactly one ID token", async () => {
+	await activePerson(ADMIN, "Dan", { contact_email: "dan@example.org" });
+	const { secret } = await setUpProvider();
+	const { verifier, challenge } = await pkce();
+	const code = (await authorizeAndContinue(ADMIN, challenge)).searchParams.get("code")!;
+	const one = () => call("oidc/token", { input: tokenForm({ grant_type: "authorization_code", code, redirect_uri: REDIRECT, code_verifier: verifier }), headers: { authorization: basic("cloudflare-access", secret) } });
+	const results = await Promise.all([one(), one(), one()]);
+	assert.equal(results.filter((r) => raw(r).status === 200).length, 1);
+});
+
+test("email_verified only when EmDash verified the account's address and it is the person's Powerfarm address; claims carry pf_principal_id", async () => {
+	const dan = await activePerson(ADMIN, "Dan", { contact_email: "Dan@Example.org" });
+	const { secret } = await setUpProvider();
+	const keys = async () => bodyOf(await call("oidc/jwks")).keys;
+	const claimsFor = async (user: { id: string; role: number; email?: string; emailVerified?: boolean }) => {
+		const { verifier, challenge } = await pkce();
+		const code = (await authorizeAndContinue(user, challenge)).searchParams.get("code")!;
+		const tok = await call("oidc/token", { input: tokenForm({ grant_type: "authorization_code", code, redirect_uri: REDIRECT, code_verifier: verifier }), headers: { authorization: basic("cloudflare-access", secret) } });
+		return verifyJwt(bodyOf(tok).id_token, await keys(), { issuer: `${ORIGIN}/_emdash/api/plugins/powerfarm/oidc`, audiences: ["cloudflare-access"] });
+	};
+	const passkeyOnly = await claimsFor({ ...ADMIN, email: "dan@example.org", emailVerified: false });
+	assert.equal(passkeyOnly.email_verified, false, "a passkey account's address was never verified");
+	assert.equal(passkeyOnly.pf_principal_id, dan.principalId);
+	assert.equal(passkeyOnly.sub, dan.principalId);
+	assert.equal((await claimsFor({ ...ADMIN, email: "DAN@example.org", emailVerified: true })).email_verified, true, "verified by EmDash and the same address (case-insensitive)");
+	assert.equal((await claimsFor({ ...ADMIN, email: "other@example.org", emailVerified: true })).email_verified, false, "verified, but not the address on the person record");
+	assert.equal((await claimsFor({ ...ADMIN })).email_verified, false, "unknown verification state is not verification");
+
+	// The person's address changes between sign-in and token: the old verification does not carry over.
+	const { verifier, challenge } = await pkce();
+	const code = (await authorizeAndContinue({ ...ADMIN, email: "dan@example.org", emailVerified: true }, challenge)).searchParams.get("code")!;
+	await w.editAs(ADMIN, "people", dan.id, { contact_email: "dan@new.example.org" });
+	assert.equal(await w.publishAs(ADMIN, "people", dan.id), undefined);
+	const tok = await call("oidc/token", { input: tokenForm({ grant_type: "authorization_code", code, redirect_uri: REDIRECT, code_verifier: verifier }), headers: { authorization: basic("cloudflare-access", secret) } });
+	const changed = await verifyJwt(bodyOf(tok).id_token, await keys(), { issuer: `${ORIGIN}/_emdash/api/plugins/powerfarm/oidc`, audiences: ["cloudflare-access"] });
+	assert.equal(changed.email, "dan@new.example.org");
+	assert.equal(changed.email_verified, false);
+	assert.equal(changed.pf_principal_id, dan.principalId, "the principal never changes with the address");
+});
+
+test("one canonical issuer from EmDash's site URL, whatever hostname a request arrives on; none without it", async () => {
+	await activePerson(ADMIN, "Dan", { contact_email: "dan@example.org" });
+	const viaAlias = bodyOf(await call("oidc/openid-configuration", { url: "https://alias.example.net/_emdash/api/plugins/powerfarm/oidc/openid-configuration" }));
+	assert.equal(viaAlias.issuer, `${ORIGIN}/_emdash/api/plugins/powerfarm/oidc`);
+	assert.deepEqual(viaAlias.code_challenge_methods_supported, ["S256"]);
+	assert.ok(viaAlias.claims_supported.includes("pf_principal_id"));
+	const site = (w.ctx as unknown as { site: { url: string } }).site;
+	site.url = "";
+	assert.equal(raw(await call("oidc/openid-configuration")).status, 503, "no EMDASH_SITE_URL, no issuer");
+	site.url = "http://powerfarm.example.org";
+	assert.equal(raw(await call("oidc/openid-configuration")).status, 503, "production issuers are https");
+	site.url = "https://powerfarm.example.org/sub";
+	assert.equal(raw(await call("oidc/openid-configuration")).status, 503);
 });
 
 test("Access logs: refused sign-ins and a first sign-in from a new country become incidents; nothing is read without a token", async () => {
