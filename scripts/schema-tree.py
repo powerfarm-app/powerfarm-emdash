@@ -65,9 +65,9 @@ def top_keys(body: str) -> list[str]:
     keys, depth, line_start = [], 0, True
     for line in body.split("\n"):
         if depth == 0:
-            m = re.match(r'\s*(?:\[[A-Z_]+\.)?([A-Za-z0-9_$"\'.:/-]+?)\]?\??\s*:', line)
+            m = re.match(r'\s*(?:"([^"]+)"|\'([^\']+)\'|(?:\[[A-Z_]+\.)?([A-Za-z0-9_$.]+)\]?)\??\s*:', line)
             if m and not line.strip().startswith("//"):
-                keys.append(m.group(1).strip("\"'"))
+                keys.append(next(g for g in m.groups() if g))
         depth += line.count("{") + line.count("[") + line.count("(") - line.count("}") - line.count("]") - line.count(")")
     return keys
 
@@ -138,8 +138,9 @@ def powerfarm_tree(root: Path) -> dict:
 
     index = read(src / "index.ts")
     tree["EmDash capabilities requested"] = strings_in(block(index, r"const CAPABILITIES: PluginCapability\[\] ="))
-    hooks = block(index, r"hooks:\s*")
-    tree["EmDash hooks used"] = sorted(set(re.findall(r'"([a-z]+:[a-zA-Z]+)":', hooks)))
+    hook_names = set(strings_in(block(read(ROOT / ".upstream/emdash/packages/core/src/plugins/manifest-schema.ts"), r"export const HOOK_NAMES =")))
+    hooks = top_keys(block(index, r"hooks:\s*"))
+    tree["EmDash hooks used"] = sorted(h for h in hooks if h in hook_names or not hook_names)
     tree["admin pages"] = re.findall(r'path:\s*"([^"]+)"', block(index, r"const ADMIN_PAGES ="))
     tree["admin widgets"] = re.findall(r'id:\s*"([^"]+)"', block(index, r"const ADMIN_WIDGETS ="))
 
@@ -169,7 +170,9 @@ def powerfarm_tree(root: Path) -> dict:
     onto = read(src / "ontology.ts")
     tree["ontology node types"] = re.findall(r"^\t([a-z_]+):\s*\{\s*domain:", onto, re.M)
 
-    uses = sorted(set(re.findall(r"\bctx\.([a-z]+)\b", "".join(read(f) for f in src.rglob("*.ts")))))
+    all_src = "".join(read(f) for f in src.rglob("*.ts"))
+    # Direct `ctx.x` and the optional-API cast `(ctx as { x?: … }).x`.
+    uses = sorted(set(re.findall(r"\bctx\.([a-z]+)\b", all_src)) | set(re.findall(r"\(ctx as \{ ([a-z]+)\?:", all_src)))
     tree["EmDash ctx APIs used"] = uses
 
     seed = json.loads(read(root / "site/seed/seed.json") or "{}")

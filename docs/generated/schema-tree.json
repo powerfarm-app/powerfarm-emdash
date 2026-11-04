@@ -1582,6 +1582,7 @@
       "content:beforeSave",
       "content:beforeSchedule",
       "content:beforeUnpublish",
+      "cron",
       "plugin:activate"
     ],
     "admin pages": [
@@ -1830,6 +1831,7 @@
     "EmDash ctx APIs used": [
       "content",
       "cron",
+      "email",
       "http",
       "input",
       "kv",
