@@ -7,7 +7,8 @@
 	"main": "src/index.ts",
 	"exports": {
 		".": "./src/index.ts",
-		"./admin": "./src/admin/index.tsx"
+		"./admin": "./src/admin/index.tsx",
+		"./brand/tokens.css": "./src/brand/tokens.css"
 	},
 	"files": [
 		"src"

@@ -1,5 +1,7 @@
 import type { PluginAdminExports } from "emdash";
 
+// Powerfarm's colours for the whole EmDash admin, not only these pages (theme.css).
+import "./theme.css";
 import { contentListColumns } from "./columns.js";
 import { GraphPage } from "./GraphPage.js";
 import { AuditPage, EngineeringPage } from "./OtherPages.js";

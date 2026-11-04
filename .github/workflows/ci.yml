@@ -3,7 +3,9 @@
 #   tests   plugin and Mac bridge tests, the lockfile rule, script syntax (fast, no EmDash build)
 #   emdash  Powerfarm on the pinned EmDash: patches apply, no new dependencies, EmDash build,
 #           patch tests, typecheck, astro check, seed and migration validation, Worker build,
-#           scheduler wiring (scripts/setup.sh, the same script people run)
+#           scheduler wiring (scripts/setup.sh, the same script people run), then the brand
+#           in a real browser: production build and signed-in admin, light and dark
+#           (scripts/visual-check.mjs); screenshots are kept as the run's artifact
 #
 # No secrets, no deploy. Actions are pinned by commit SHA (the same pins EmDash uses).
 name: CI
@@ -64,3 +66,17 @@ jobs:
         run: corepack enable
       - name: EmDash at the pin, Powerfarm's patches, build and all checks
         run: bash scripts/setup.sh
+      - name: Chromium for the brand check (EmDash's own Playwright)
+        working-directory: .upstream/emdash
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Brand in a browser (production build and signed-in admin, light and dark)
+        working-directory: .upstream/emdash
+        run: node powerfarm/scripts/visual-check.mjs --out "$RUNNER_TEMP/brand-screenshots"
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: brand-screenshots
+          path: ${{ runner.temp }}/brand-screenshots
+          retention-days: 14
+          if-no-files-found: ignore

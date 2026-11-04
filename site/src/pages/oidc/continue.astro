@@ -5,6 +5,11 @@
 // route `oidc/continue` with EmDash's CSRF header (same-origin, session cookie)
 // and follows the answer. Not signed in → EmDash's own sign-in, then back here.
 // Cloudflare Access must Bypass this path (docs/IDENTITY.md).
+import "@powerfarm/emdash-plugin/brand/tokens.css";
+import { Font } from "astro:assets";
+
+import Mark from "../../components/Mark.astro";
+
 export const prerender = true;
 ---
 
@@ -15,18 +20,26 @@ export const prerender = true;
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="noindex, nofollow" />
 		<meta name="referrer" content="no-referrer" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<Font cssVariable="--font-emdash" preload />
 		<title>Signing in — Powerfarm</title>
 	</head>
 	<body>
 		<main>
-			<p id="status">Signing you in…</p>
+			<Mark class="mark" />
+			<p id="status" role="status" aria-live="polite">Signing you in…</p>
+			<div class="progress" aria-hidden="true"></div>
 		</main>
 		<script is:inline>
 			(async () => {
 				const status = document.getElementById("status");
+				const fail = (message) => {
+					status.textContent = message;
+					document.body.dataset.state = "error";
+				};
 				const rid = new URLSearchParams(location.search).get("rid") || "";
 				if (!/^[A-Za-z0-9_-]{16,64}$/.test(rid)) {
-					status.textContent = "This sign-in link is not valid. Start again from the application.";
+					fail("This sign-in link is not valid. Start again from the application.");
 					return;
 				}
 				let res;
@@ -38,7 +51,7 @@ export const prerender = true;
 						body: JSON.stringify({ rid }),
 					});
 				} catch {
-					status.textContent = "Could not reach Powerfarm. Try again.";
+					fail("Could not reach Powerfarm. Try again.");
 					return;
 				}
 				if (res.status === 401) {
@@ -51,12 +64,72 @@ export const prerender = true;
 					location.replace(target);
 					return;
 				}
-				status.textContent = (body && body.error && body.error.message) || "Sign-in could not be completed.";
+				fail((body && body.error && body.error.message) || "Sign-in could not be completed.");
 			})();
 		</script>
 		<style>
-			body { font-family: system-ui, -apple-system, sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f6f4; color: #1d1d1b; }
-			@media (prefers-color-scheme: dark) { body { background: #161615; color: #ecece8; } }
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: grid;
+				place-items: center;
+				background: var(--pf-bg);
+				color: var(--pf-ink);
+				font-family: var(--pf-font);
+				-webkit-font-smoothing: antialiased;
+			}
+			main {
+				display: grid;
+				justify-items: center;
+				gap: 1.25rem;
+				padding: 2rem 16px;
+				max-width: 22rem;
+				text-align: center;
+			}
+			.mark {
+				width: 3rem;
+				height: 3rem;
+			}
+			p {
+				margin: 0;
+				font-size: 0.9375rem;
+			}
+			.progress {
+				width: 8rem;
+				height: 2px;
+				background: var(--pf-line);
+				position: relative;
+				overflow: hidden;
+			}
+			.progress::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				width: 40%;
+				background: var(--pf-detail);
+				animation: pf-progress 1.2s var(--pf-ease) infinite;
+			}
+			@keyframes pf-progress {
+				from {
+					transform: translateX(-100%);
+				}
+				to {
+					transform: translateX(250%);
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.progress::after {
+					animation: none;
+					width: 100%;
+					opacity: 0.5;
+				}
+			}
+			body[data-state="error"] p {
+				color: var(--pf-error);
+			}
+			body[data-state="error"] .progress {
+				display: none;
+			}
 		</style>
 	</body>
 </html>
